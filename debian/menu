@@ -1,0 +1,5 @@
+?package(psmisc):needs="text" section="Apps/System" hints="Monitoring"\
+  title="Pstree" command="/usr/bin/pstree.x11" \
+  icon="/usr/share/pixmaps/pstree16.xpm" 
+?package(psmisc):needs="vc" section="Apps/System" hints="Monitoring"\
+  title="Pstree" command="/usr/bin/pstree"
