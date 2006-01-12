@@ -1,3 +1,12 @@
+psmisc (22.1-1) unstable; urgency=low
+
+  * New upstream release
+  *  Updated German PO file Closes: #313934
+  *  fuser -s flag works Closes: #344901
+  *  fixed grep lines in Makefile for i386 arches Closes: #344172
+
+ -- Craig Small <csmall@debian.org>  Thu, 12 Jan 2006 19:01:13 +1100
+
 psmisc (21.9-1) unstable; urgency=low
 
   * New upstream release
