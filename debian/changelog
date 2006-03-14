@@ -1,3 +1,12 @@
+psmisc (22.2-1) unstable; urgency=low
+
+  * New upstream release
+  *  Finds unix sockets on all arches, Closes: #338868
+  *  Swedish PO file updated Closes: #348140
+  * Moved to debhelper v5
+
+ -- Craig Small <csmall@debian.org>  Wed, 15 Mar 2006 10:25:55 +1100
+
 psmisc (22.1-1) unstable; urgency=low
 
   * New upstream release

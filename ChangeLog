@@ -1,3 +1,29 @@
+Changes in 22.2
+===============
+2006-03-09 Craig Small
+	* Updated Nowegian and Vietnamese PO files
+
+2006-03-07 Craig Small
+	* Updated Polish and Dutch PO files
+
+2006-01-27 Craig Small
+	* Unix sockets work on all hosts now, including ones that don't have
+	network device set to 0.
+	* TCP/UDP6 sockets are found a bit better.
+	* Makefile changed so signames builds in all locales. Thanks to Mike
+	  Frysinger for the patch.
+	* Return code works
+
+
+2006-01-23 Craig Small
+	* Updated Swedish, Vietnamese and Italian PO files
+	* Minor fixes for some error messages, thanks to Benno.
+
+
+2006-01-13 Craig Small
+	* Updated Polish and dutch PO files
+	* Added Bulgarian PO file
+
 Changes in 22.1
 ===============
 2006-01-12 Craig Small
