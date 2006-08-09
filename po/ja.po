@@ -1,48 +1,49 @@
-# French Translation of PSmisc messages.
-# "Copyright (C) 1993-2001 Werner Almesberger, Craig Small, and Marc Léger\n"
-# Translated by Marc Léger <sorata@users.sourceforge.net>, November 2001.
+# Japanese messages for psmisc.
+# Copyright (C) 2006 Free Software Foundation, Inc.
+# This file is distributed under the same license as the PACKAGE package.
+# Goto, Masanori <gotom@debian.or.jp>, 2006.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: psmisc 20.1\n"
+"Project-Id-Version: psmisc 22.2pre1\n"
 "Report-Msgid-Bugs-To: csmall@small.dropbear.id.au\n"
 "POT-Creation-Date: 2006-08-09 21:28+1000\n"
-"PO-Revision-Date: 2002-04-12 21:33+1000\n"
-"Last-Translator: Marc Léger <sorata@users.sourceforge.net>\n"
-"Language-Team: French <fr@li.org>\n"
+"PO-Revision-Date: 2006-03-20 10:31+0900\n"
+"Last-Translator: GOTO Masanori <gotom@debian.or.jp>\n"
+"Language-Team: Japanese <translation-team-ja@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=iso-8859-1\n"
-"Content-Transfer-Encoding: 8-bit\n"
+"Content-Type: text/plain; charset=EUC-JP\n"
+"Content-Transfer-Encoding: 8bit\n"
 
 #: src/killall.c:73
-#, fuzzy, c-format
+#, c-format
 msgid "Kill %s(%s%d) ? (y/N) "
-msgstr "Tuer %s(%s%d) ? (y/n) "
+msgstr "%s(%s%d) ¤òkill¤·¤Þ¤¹¤«? (y/N)"
 
 #: src/killall.c:116
 #, c-format
 msgid "Cannot get UID from process status\n"
-msgstr ""
+msgstr "¥×¥í¥»¥¹¤Î¸½ºß¾õÂÖ¤«¤éUID¤ò¼èÆÀ¤Ç¤­¤Þ¤»¤ó¤Ç¤·¤¿\n"
 
 #: src/killall.c:142 src/killall.c:664
 #, c-format
 msgid "Bad regular expression: %s\n"
-msgstr ""
+msgstr "ÉÔÀµ¤ÊÀµµ¬É½¸½: %s\n"
 
 #: src/killall.c:338
 #, c-format
 msgid "skipping partial match %s(%d)\n"
-msgstr "Ignore la correspondance partielle %s(%d)\n"
+msgstr "ÉôÊ¬°ìÃ×¤ò¥¹¥­¥Ã¥× %s(%d)\n"
 
 #: src/killall.c:427
 #, c-format
 msgid "Killed %s(%s%d) with signal %d\n"
-msgstr "Tué %s(%s%d) avec le signal %d\n"
+msgstr "%s(%s%d) ¤ò¥·¥°¥Ê¥ë %d ¤Çkill¤·¤Þ¤·¤¿\n"
 
 #: src/killall.c:441
 #, c-format
 msgid "%s: no process killed\n"
-msgstr "%s: aucun processus tué\n"
+msgstr "%s: ¤É¤Î¥×¥í¥»¥¹¤âkill¤µ¤ì¤Þ¤»¤ó¤Ç¤·¤¿\n"
 
 #: src/killall.c:479
 #, c-format
@@ -56,17 +57,27 @@ msgid ""
 "    -V      display version information\n"
 "\n"
 msgstr ""
+"»ÈÍÑË¡: pidof [ -eg ] ¥×¥í¥»¥¹Ì¾...\n"
+"        pidof -V\n"
+"\n"
+"    -e      ¤È¤Æ¤âÄ¹¤¤¥×¥í¥»¥¹Ì¾¤ËÂÐ¤·¤Æ´°Á´°ìÃ×¤òÍ×µá¤¹¤ë\n"
+"            ¥³¥Þ¥ó¥É¥é¥¤¥ó¤¬ÍøÍÑ¤Ç¤­¤Ê¤¤¾ì¹ç¤Ï³ºÅö¥×¥í¥»¥¹¤Ï¥¹¥­¥Ã¥×¤µ¤ì¤ë\n"
+"    -g      ¥×¥í¥»¥¹ID¤ÎÂå¤ê¤Ë¥×¥í¥»¥¹¥°¥ë¡¼¥×ID¤òÉ½¼¨¤¹¤ë\n"
+"    -V      ¥Ð¡¼¥¸¥ç¥ó¾ðÊó¤òÉ½¼¨¤¹¤ë\n"
+"\n"
 
 #: src/killall.c:493
 #, c-format
 msgid ""
 "Usage: killall [-Z CONTEXT] [-u USER] [ -eIgiqrvw ] [ -SIGNAL ] NAME...\n"
 msgstr ""
+"»ÈÍÑË¡: killall [-Z CONTEXT] [-u ¥æ¡¼¥¶¡¼] [ -eIgiqrvw ] [ -¥·¥°¥Ê¥ë ] Ì¾"
+"Á°...\n"
 
 #: src/killall.c:496
 #, c-format
 msgid "Usage: killall [OPTION]... [--] NAME...\n"
-msgstr ""
+msgstr "»ÈÍÑË¡: killall [¥ª¥×¥·¥ç¥ó]... [--] Ì¾Á°...\n"
 
 #: src/killall.c:499
 #, c-format
@@ -87,6 +98,21 @@ msgid ""
 "  -V,--version        display version information\n"
 "  -w,--wait           wait for processes to die\n"
 msgstr ""
+"       killall -l, --list\n"
+"       killall -V, --version\n"
+"\n"
+"  -e,--exact            ¤È¤Æ¤âÄ¹¤¤Ì¾Á°¤ËÂÐ¤·¤Æ´°Á´°ìÃ×¤òÍ×µá¤¹¤ë\n"
+"  -I,--ignore-case      ¥×¥í¥»¥¹Ì¾¤Î°ìÃ×¤ÏÂçÊ¸»ú¤Î¾®Ê¸»ú¶èÊÌ¤Ê¤¯¹Ô¤¦\n"
+"  -g,--process-group    ¥×¥í¥»¥¹¤ÎÂå¤ê¤Ë¥×¥í¥»¥¹¥°¥ë¡¼¥×¤Ë¥·¥°¥Ê¥ë¤òÁ÷¤ë\n"
+"  -i,--interactive      kill ¤¹¤ëÁ°¤Ë³ÎÇ§¤òµá¤á¤ë\n"
+"  -l,--list             ´ûÃÎ¤Î¥·¥°¥Ê¥ëÌ¾¤ò¤¹¤Ù¤ÆÉ½¼¨¤¹¤ë\n"
+"  -q,--quiet            kill ¤¹¤ë¥×¥í¥»¥¹¤¬¤Ê¤¤¾ì¹ç¤ËÉ½¼¨¤ò¹Ô¤ï¤Ê¤¤\n"
+"  -r,--regexp           »ØÄê¤·¤¿Ì¾Á°¤ò³ÈÄ¥Àµµ¬É½¸½¤È¤·¤Æ²ò¼á¤¹¤ë\n"
+"  -s,--signal ¥·¥°¥Ê¥ë  SIGTERM¤ÎÂå¤ê¤Ë»ØÄê¤·¤¿¥·¥°¥Ê¥ë¤òÁ÷¤ë\n"
+"  -u,--user ¥æ¡¼¥¶      »ØÄê¤·¤¿¥æ¡¼¥¶¤ÇÁö¹Ô¤¹¤ë¥×¥í¥»¥¹¤Î¤ßkill¤¹¤ë\n"
+"  -v,--verbose          ¥·¥°¥Ê¥ë¤ÎÁ÷¿®¤ËÀ®¸ù¤·¤¿¤éÊó¹ð¤¹¤ë\n"
+"  -V,--version          ¥Ð¡¼¥¸¥ç¥ó¾ðÊó¤òÉ½¼¨¤¹¤ë\n"
+"  -w,--wait             kill¤·¤¿¥×¥í¥»¥¹¤¬½ªÎ»¤¹¤ë¤Þ¤ÇÂÔ¤Ä\n"
 
 #: src/killall.c:515
 #, c-format
@@ -94,6 +120,8 @@ msgid ""
 "  -Z,--context REGEXP kill only process(es) having context\n"
 "                      (must precede other arguments)\n"
 msgstr ""
+"  -Z,--context Àµµ¬É½¸½ ¥³¥ó¥Æ¥­¥¹¥È¤ò»ý¤Ä¥×¥í¥»¥¹¤Î¤ßkill¤¹¤ë\n"
+"                        (Â¾¤Î°ú¿ô¤è¤ê¤âÁ°¤Ë»ØÄê¤µ¤ì¤Æ¤¤¤Ê¤±¤ì¤Ð¤Ê¤é¤Ê¤¤)\n"
 
 #: src/killall.c:536 src/fuser.c:117 src/pstree.c:780
 #, c-format
@@ -101,41 +129,39 @@ msgid ""
 "Copyright (C) 1993-2005 Werner Almesberger and Craig Small\n"
 "\n"
 msgstr ""
+"Copyright (C) 1993-2005 Werner Almesberger and Craig Small\n"
+"\n"
 
 #: src/killall.c:538 src/fuser.c:119 src/pstree.c:782
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "PSmisc comes with ABSOLUTELY NO WARRANTY.\n"
 "This is free software, and you are welcome to redistribute it under\n"
 "the terms of the GNU General Public License.\n"
 "For more information about these matters, see the files named COPYING.\n"
 msgstr ""
-"Copyright (C) 1993-2000 Werner Almesberger and Craig Small\n"
-"\n"
-"PSmisc fait l'objet d'AUCUNE GARANTIE.\n"
-"C'est un logiciel libre, et vous pouvez le redistribuer en respectant les "
-"termes\n"
-"de la licence GNU General Public License.\n"
-"Pour plus de précisions à propos de ces problèmes, voir les fichiers nommés "
-"COPYING.\n"
+"PSmisc¤Ï´°Á´¤ËÌµÊÝ¾Ú¤Ç¤¹\n"
+"¤³¤ì¤Ï¥Õ¥ê¡¼¥½¥Õ¥È¥¦¥§¥¢¤Ç¤¹¡£GNU°ìÈÌ¸ø½°ÍøÍÑµöÂú·ÀÌó½ñ¤Î¾ò¹à¤Ë´ð¤Å¤¤¤Æ\n"
+"ºÆÇÛÉÛ¤ò¼«Í³¤Ë¹Ô¤Ã¤Æ¤«¤Þ¤¤¤Þ¤»¤ó¡£\n"
+"¤³¤ì¤é¤Ë¤Ä¤¤¤Æ¤è¤ê¾ÜºÙ¤Ê¾ðÊó¤ÏCOPYING¥Õ¥¡¥¤¥ë¤ò¤´Í÷²¼¤µ¤¤¡£\n"
 
 #: src/killall.c:638
 #, c-format
 msgid "Cannot find user %s\n"
-msgstr ""
+msgstr "¥æ¡¼¥¶ %s ¤òÈ¯¸«¤Ç¤­¤Þ¤»¤ó\n"
 
 #: src/killall.c:697
 #, c-format
 msgid "Maximum number of names is %d\n"
-msgstr "Le nombre maximum de noms est %d\n"
+msgstr "Ì¾Á°¤ÎºÇÂç»ØÄê²ÄÇ½¿ô¤Ï %d\n"
 
 #: src/killall.c:702 src/pstree.c:710
 #, c-format
 msgid "%s is empty (not mounted ?)\n"
-msgstr "%s est vide (non monté ?)\n"
+msgstr "%s ¤Ï¶õ¥Ç¥£¥ì¥¯¥È¥ê (¥Þ¥¦¥ó¥È¤µ¤ì¤Æ¤¤¤Ê¤¤?)\n"
 
 #: src/fuser.c:86
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Usage: fuser [ -a | -s | -c ] [ -n SPACE ] [ -SIGNAL ] [ -kimuv ] NAME...\n"
 "             [ - ] [ -n SPACE ] [ -SIGNAL ] [ -kimuv ] NAME...\n"
@@ -163,97 +189,104 @@ msgid ""
 "  udp/tcp names: [local_port][,[rmt_host][,[rmt_port]]]\n"
 "\n"
 msgstr ""
-"utilisation.: fuser [ -a | -s ] [ -n espace ] [ -signal ] [ -kimuv ] "
-"nom ...\n"
-"             [ - ] [ -n espace ] [ -signal ] [ -kimuv ] nom ...\n"
-"       fuser -l\n"
-"       fuser -V\n"
+"»ÈÍÑË¡: fuser [ -a | -s | -c ] [ -n SPACE ] [ -¥·¥°¥Ê¥ë ] [ -kimuv ] Ì¾"
+"Á°...\n"
+"              [ - ] [ -n SPACE ] [ -¥·¥°¥Ê¥ë ] [ -kimuv ] Ì¾Á°...\n"
+"        fuser -l\n"
+"        fuser -V\n"
+"¥Õ¥¡¥¤¥ëÌ¾¡¦¥½¥±¥Ã¥È¡¦¥Õ¥¡¥¤¥ë¥·¥¹¥Æ¥à¤ò¤É¤Î¥×¥í¥»¥¹¤¬»ÈÍÑ¤·¤Æ¤¤¤ë¤«¤òÉ½¼¨\n"
 "\n"
-"    -a        affiche les fichiers inutilisés aussi\n"
-"    -k        tue les processus accédant à ce fichier\n"
-"    -i        demande avant de tuer (ignoré sans -k)\n"
-"    -l        liste les noms des signaux\n"
-"    -m        système de fichiers monté\n"
-"    -n espace cherche dans l'espace de noms spécifié (fichier, udp, ou tcp)\n"
-"    -s        mode silencieux\n"
-"    -signal   envoi le signal \"signal\" au lieu de SIGKILL\n"
-"    -u        affiche l'identificateur de l'utilisateur\n"
-"    -v        mode détaillé\n"
-"    -V        affiche des informations sur la version\n"
-"    -4        cherche des sockets IPv4 seulement\n"
-"    -6        cherche des sockets IPv6 seulement\n"
-"    -         réinitialise les options\n"
+"    -a        ¥×¥í¥»¥¹¤«¤é»²¾È¤µ¤ì¤Æ¤¤¤Ê¤¤¥Õ¥¡¥¤¥ë¤âÉ½¼¨ÂÐ¾Ý¤È¤¹¤ë\n"
+"    -c        -m¥ª¥×¥·¥ç¥ó¤ËÆ±¤¸ (POSIX¸ß´¹À­¤Î¤¿¤á¤À¤±¤ËÂ¸ºß)\n"
+"    -f        ¤Ä¤±¤Æ¤âÌµ»ë¤µ¤ì¤ë (POSIX¸ß´¹À­¤Î¤¿¤á¤À¤±¤ËÂ¸ºß)\n"
+"    -i        kill¤¹¤ëÁ°¤Ë³ÎÇ§¤òµá¤á¤ë (-k¥ª¥×¥·¥ç¥ó¤ò¤Ä¤±¤Ê¤¤¤È¤­¤ÏÌµ»ë¤µ¤ì"
+"¤ë)\n"
+"    -k        »ØÄê¤·¤¿¥Õ¥¡¥¤¥ë¤Ë¥¢¥¯¥»¥¹¤·¤Æ¤¤¤ë¥×¥í¥»¥¹¤òkill¤¹¤ë\n"
+"    -l        ÍøÍÑ²ÄÇ½¤Ê¥·¥°¥Ê¥ëÌ¾¤ò¤¹¤Ù¤ÆÉ½¼¨¤¹¤ë\n"
+"    -m        »ØÄê¥Õ¥¡¥¤¥ë¾å¤Î¥Õ¥¡¥¤¥ë¥·¥¹¥Æ¥à¤ò»ÈÍÑ¤¹¤ëÁ´¥×¥í¥»¥¹¤òÉ½¼¨¤¹"
+"¤ë\n"
+"    -n SPACE  Ì¾Á°¶õ´Ö¤È¤·¤ÆSPACE(file, udp, ¤Þ¤¿¤Ï tcp ¤Î¤É¤ì¤«)¤ò»ØÄê¤¹"
+"¤ë \n"
+"    -s        É½¼¨¤òÍÞÀ©¤¹¤ë\n"
+"    -¥·¥°¥Ê¥ë SIGKILL¤ÎÂå¤ê¤Ë»ØÄê¤·¤¿¥·¥°¥Ê¥ë¤òÁ÷¤ë\n"
+"    -u        ¥æ¡¼¥¶ID¤òÉ½¼¨¤¹¤ë\n"
+"    -v        ¾éÄ¹É½¼¨¤ò¹Ô¤¦\n"
+"    -V        ¥Ð¡¼¥¸¥ç¥ó¾ðÊó¤òÉ½¼¨¤¹¤ë\n"
+"    -4        IPv4¥½¥±¥Ã¥È¤Î¤ß¸¡º÷¤¹¤ë\n"
+"    -6        IPv6¥½¥±¥Ã¥È¤Î¤ß¸¡º÷¤¹¤ë\n"
+"    -         ¥ê¥»¥Ã¥È¥ª¥×¥·¥ç¥ó\n"
 "\n"
-"  noms udp/tcp: [port_local][,[hôte_distant][,[port_distant]]]\n"
+"  udp/tcp Ì¾Á°: [¥í¡¼¥«¥ë¥Ý¡¼¥È][,[¥ê¥â¡¼¥È¥Û¥¹¥È][,[¥ê¥â¡¼¥È¥Ý¡¼¥È]]]\n"
 "\n"
 
 #: src/fuser.c:115
-#, fuzzy, c-format
+#, c-format
 msgid "fuser (PSmisc) %s\n"
-msgstr "fuser (psmisc) %s\n"
+msgstr "fuser (PSmisc) %s\n"
 
 #: src/fuser.c:142
 #, c-format
 msgid "Cannot open /proc directory: %s\n"
-msgstr ""
+msgstr "/proc ¥Ç¥£¥ì¥¯¥È¥ê¤ò³«¤±¤Þ¤»¤ó: %s\n"
 
 #: src/fuser.c:278
 #, c-format
 msgid "Cannot allocate memory for matched proc: %s\n"
-msgstr ""
+msgstr "°ìÃ×¤·¤¿¥×¥í¥»¥¹¤ËÂÐ¤¹¤ë¥á¥â¥ê¤¬³ÍÆÀ¤Ç¤­¤Þ¤»¤ó: %s\n"
 
 #: src/fuser.c:311
 #, c-format
 msgid "Cannot stat mount point %s: %s\n"
-msgstr ""
+msgstr "¥Þ¥¦¥ó¥È¥Ý¥¤¥ó¥È %s ¤òstat¤Ç¤­¤Þ¤»¤ó: %s\n"
 
 #: src/fuser.c:328 src/fuser.c:347 src/fuser.c:370
 #, c-format
 msgid "Cannot stat %s: %s\n"
-msgstr ""
+msgstr "%s ¤òstat¤Ç¤­¤Þ¤»¤ó: %s\n"
 
 #: src/fuser.c:469
 #, c-format
 msgid "Cannot resolve local port %s: %s\n"
-msgstr ""
+msgstr "¥í¡¼¥«¥ë¥Ý¡¼¥È %s ¤ò²ò·è¤Ç¤­¤Þ¤»¤ó: %s\n"
 
 #: src/fuser.c:485
 #, c-format
 msgid "Unknown local port AF %d\n"
-msgstr ""
+msgstr "Ì¤ÃÎ¤Î¥í¡¼¥«¥ë¥Ý¡¼¥È AF %d\n"
 
 #: src/fuser.c:538 src/fuser.c:590
 #, c-format
 msgid "Cannot open protocol file \"%s\": %s\n"
-msgstr ""
+msgstr "¥×¥í¥È¥³¥ë¥Õ¥¡¥¤¥ë \"%s\" ¤¬³«¤±¤Þ¤»¤ó: %s\n"
 
 #: src/fuser.c:711
 msgid "Namespace option requires an argument."
-msgstr ""
+msgstr "Ì¾Á°¶õ´Ö¥ª¥×¥·¥ç¥ó¤Ï°ú¿ô¤¬É¬Í×¤Ç¤¹"
 
 #: src/fuser.c:720
 msgid "Invalid namespace name"
-msgstr ""
+msgstr "ÉÔÀµ¤ÊÌ¾Á°¶õ´ÖÌ¾"
 
 #: src/fuser.c:776
 msgid "You can only use files with mountpoint option"
 msgstr ""
+"¥Þ¥¦¥ó¥È¥Ý¥¤¥ó¥È¥ª¥×¥·¥ç¥ó(-m¤Þ¤¿¤Ï-c)¤È°ì½ï¤Ë»È¤¨¤ë¤Î¤ÏfileÌ¾Á°¶õ´Ö¤Î¤ß¤Ç¤¹"
 
 #: src/fuser.c:805
 msgid "No process specification given"
-msgstr ""
+msgstr "°ú¿ô¤¬Í¿¤¨¤é¤ì¤Æ¤¤¤Þ¤»¤ó"
 
 #: src/fuser.c:810
 msgid "You cannot use the mounted and mountpoint flags together"
-msgstr ""
+msgstr "-m¥ª¥×¥·¥ç¥ó¤È-c¥ª¥×¥·¥ç¥ó¤ÏÆ±»þ¤Ë¤Ï»È¤¨¤Þ¤»¤ó"
 
 #: src/fuser.c:817
 msgid "all option cannot be used with silent option."
-msgstr ""
+msgstr "-a¥ª¥×¥·¥ç¥ó¤Ï-s¥ª¥×¥·¥ç¥ó¤È°ì½ï¤Ë¤Ï»ÈÍÑ¤Ç¤­¤Þ¤»¤ó"
 
 #: src/fuser.c:821
 msgid "You cannot search for only IPv4 and only IPv6 sockets at the same time"
-msgstr ""
+msgstr "-4¥ª¥×¥·¥ç¥ó¤È-6¥ª¥×¥·¥ç¥ó¤ÏÆ±»þ¤Ë»ØÄê¤Ç¤­¤Þ¤»¤ó"
 
 #: src/fuser.c:866
 #, c-format
@@ -261,50 +294,52 @@ msgid ""
 "\n"
 "%*s USER        PID ACCESS COMMAND\n"
 msgstr ""
+"\n"
+"%*s ¥æ¡¼¥¶     PID ¥¢¥¯¥»¥¹ ¥³¥Þ¥ó¥É\n"
 
 #: src/fuser.c:891 src/fuser.c:916
 msgid "(unknown)"
-msgstr ""
+msgstr "(ÉÔÌÀ)"
 
 #: src/fuser.c:978
 #, c-format
 msgid "Cannot stat file %s: %s\n"
-msgstr ""
+msgstr "¥Õ¥¡¥¤¥ë¤òstat¤Ç¤­¤Þ¤»¤ó %s: %s\n"
 
 #: src/fuser.c:1072
 #, c-format
 msgid "Cannot open /proc/net/unix: %s\n"
-msgstr ""
+msgstr "/proc/net/unix ¤¬³«¤±¤Þ¤»¤ó: %s\n"
 
 #: src/fuser.c:1108
 #, c-format
 msgid "Cannot open /etc/mtab: %s\n"
-msgstr ""
+msgstr "/etc/mtab ¤¬³«¤±¤Þ¤»¤ó: %s\n"
 
 #: src/fuser.c:1157
-#, fuzzy, c-format
+#, c-format
 msgid "Kill process %d ? (y/N) "
-msgstr "Tuer le processus %d ? (y/n) "
+msgstr "¥×¥í¥»¥¹ %d ¤òkill¤·¤Þ¤¹¤«? (y/N) "
 
 #: src/fuser.c:1181
 #, c-format
 msgid "Could not kill process %d: %s\n"
-msgstr ""
+msgstr "¥×¥í¥»¥¹ %d ¤ò kill ¤Ç¤­¤Þ¤»¤ó: %s\n"
 
 #: src/fuser.c:1196
 #, c-format
 msgid "Cannot open a network socket.\n"
-msgstr ""
+msgstr "¥Í¥Ã¥È¥ï¡¼¥¯¥½¥±¥Ã¥È¤¬³«¤±¤Þ¤»¤ó.\n"
 
 #: src/fuser.c:1200
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot find socket's device number.\n"
-msgstr "ne peut pas trouver le numéro du périphérique des sockets"
+msgstr "¥½¥±¥Ã¥È¤Î¥Ç¥Ð¥¤¥¹ÈÖ¹æ¤¬¸«¤Ä¤«¤ê¤Þ¤»¤ó.\n"
 
 #: src/pstree.c:374
 #, c-format
 msgid "Internal error: MAX_DEPTH not big enough.\n"
-msgstr ""
+msgstr "ÆâÉô¥¨¥é¡¼: MAX_DEPTH ¤¬½½Ê¬Âç¤­¤¯¤¢¤ê¤Þ¤»¤ó.\n"
 
 #: src/pstree.c:750
 #, c-format
@@ -327,11 +362,28 @@ msgid ""
 "    -U     use UTF-8 (Unicode) line drawing characters\n"
 "    -V     display version information\n"
 msgstr ""
+"»ÈÍÑË¡: pstree [ -a ] [ -c ] [ -h | -H PID ] [ -l ] [ -n ] [ -p ] [ -u ]\n"
+"              [ -A | -G | -U ] [ PID | ¥æ¡¼¥¶Ì¾ ]\n"
+"        pstree -V\n"
+"¥×¥í¥»¥¹¥Ä¥ê¡¼¤òÉ½¼¨¤¹¤ë¡£\n"
+"\n"
+"    -a     ¥³¥Þ¥ó¥É¥é¥¤¥ó°ú¿ô¤âÉ½¼¨\n"
+"    -A     ASCII Ê¸»ú¤ò·ÓÀþÉ½¼¨¤Ë»ÈÍÑ\n"
+"    -c     Æ±¤¸ÆâÍÆ¤Î¥µ¥Ö¥Ä¥ê¡¼¤ò¤Þ¤È¤á¤ÆÃ»¤¯É½¼¨¤·¤Ê¤¤\n"
+"    -h     ¸½ºß¤Î¥×¥í¥»¥¹¤È¤½¤ÎÀèÁÄ¤Î¥×¥í¥»¥¹¤ò¶¯Ä´É½¼¨¤¹¤ë\n"
+"    -H PID »ØÄê¥×¥í¥»¥¹PID¤È¤½¤ÎÀèÁÄ¤Î¥×¥í¥»¥¹¤ò¶¯Ä´É½¼¨¤¹¤ë\n"
+"    -G     VT100 ·ÓÀþÊ¸»ú¤òÉ½¼¨¤Ë»ÈÍÑ\n"
+"    -l     Ä¹¤¤¹Ô¤òÉ½¼¨¤·¡¢ÅÓÃæ¤ÇÂÇ¤ÁÀÚ¤ê¤Þ¤»¤ó\n"
+"    -n     PID¤Ç¥½¡¼¥È¤·¤ÆÉ½¼¨\n"
+"    -p     PID¤âÉ½¼¨; -c¥ª¥×¥·¥ç¥ó¤ò¤Ä¤±¤ë¸ú²Ì¤ò´Þ¤ß¤Þ¤¹\n"
+"    -u     UID¤ÎÁ«°Ü¾õ¶·¤òÉ½¼¨¤¹¤ë\n"
+"    -U     UTF-8 (Unicode) Ê¸»ú¤ò·ÓÀþÉ½¼¨¤Ë»ÈÍÑ\n"
+"    -V     ¥Ð¡¼¥¸¥ç¥ó¾ðÊó¤òÉ½¼¨\n"
 
 #: src/pstree.c:768
 #, c-format
 msgid "    -Z     show SELinux security contexts\n"
-msgstr ""
+msgstr "    -Z     SELinux¥»¥­¥å¥ê¥Æ¥£¥³¥ó¥Æ¥­¥¹¥È¤òÉ½¼¨¤¹¤ë\n"
 
 #: src/pstree.c:771
 #, c-format
@@ -340,78 +392,44 @@ msgid ""
 "    USER   show only trees rooted at processes of this user\n"
 "\n"
 msgstr ""
+"    PID      »ØÄê¤·¤¿PID¤«¤éÉ½¼¨³«»Ï¤·¤Þ¤¹; ¥Ç¥Õ¥©¥ë¥È¤Ï 1 (init)\n"
+"    ¥æ¡¼¥¶Ì¾ »ØÄê¤·¤¿¥æ¡¼¥¶¤È¤·¤ÆÆ°ºî¤¹¤ë¥×¥í¥»¥¹¤«¤éÇÉÀ¸¤¹¤ë¥Ä¥ê¡¼¤Î¤ßÉ½¼¨\n"
+"\n"
 
 #: src/pstree.c:778
-#, fuzzy, c-format
+#, c-format
 msgid "pstree (PSmisc) %s\n"
-msgstr "fuser (psmisc) %s\n"
+msgstr "pstree (PSmisc) %s\n"
 
 #: src/pstree.c:871
 #, c-format
 msgid "TERM is not set\n"
-msgstr ""
+msgstr "TERM¤¬ÀßÄê¤µ¤ì¤Æ¤¤¤Þ¤»¤ó\n"
 
 #: src/pstree.c:876
 #, c-format
 msgid "Can't get terminal capabilities\n"
-msgstr ""
+msgstr "Ã¼Ëö¤Îµ¡Ç½¤ò¼èÆÀ¤Ç¤­¤Þ¤»¤ó¤Ç¤·¤¿\n"
 
 #: src/pstree.c:920
 #, c-format
 msgid "No such user name: %s\n"
-msgstr ""
+msgstr "»ØÄê¥æ¡¼¥¶Ì¾¤ÏÂ¸ºß¤·¤Þ¤»¤ó: %s\n"
 
 #: src/pstree.c:936
 #, c-format
 msgid "No processes found.\n"
-msgstr ""
+msgstr "¥×¥í¥»¥¹¤Ï¸«¤Ä¤«¤ê¤Þ¤»¤ó¤Ç¤·¤¿\n"
 
 #: src/pstree.c:941
 #, c-format
 msgid "Press return to close\n"
-msgstr ""
+msgstr "¥ê¥¿¡¼¥ó¥­¡¼¤ò²¡¤¹¤ÈÊÄ¤¸¤Þ¤¹\n"
 
 #: src/signals.c:84
 #, c-format
 msgid "%s: unknown signal; %s -l lists signals.\n"
-msgstr ""
+msgstr "%s: Ì¤ÃÎ¤Î¥·¥°¥Ê¥ë; %s -l ¤Ë¤è¤Ã¤Æ¥·¥°¥Ê¥ë¤ò°ìÍ÷É½¼¨¤·¤Þ¤¹\n"
 
-#~ msgid "-4 flag used but proc file %s is not readable\n"
-#~ msgstr "drapeau -4 utilisé mais le fichier proc %s est illisible\n"
-
-#~ msgid "-6 flag used but proc file %s is not readable\n"
-#~ msgstr "drapeau -6 utilisé mais le fichier proc %s est illisible\n"
-
-#~ msgid "kill %d"
-#~ msgstr "tuer %d"
-
-#~ msgid "No automatic removal. Please use  umount %s\n"
-#~ msgstr "Pas de démontage automatique. Utiliser SVP  umount %s\n"
-
-#~ msgid "No automatic removal. Please use  swapoff %s\n"
-#~ msgstr ""
-#~ "Pas de démontage automatique du fichier d'échange. Utiliser SVP  swapoff %"
-#~ "s\n"
-
-#~ msgid "Internal error (type %d)\n"
-#~ msgstr "Erreur interne (type %d)\n"
-
-#~ msgid "kernel mount  "
-#~ msgstr "montage du noyau   "
-
-#~ msgid "kernel loop   "
-#~ msgstr "boucle du noyau   "
-
-#~ msgid "kernel swap   "
-#~ msgstr "fichier d'échange du noyau   "
-
-#~ msgid "ignoring -m in name space \"%s\"\n"
-#~ msgstr "ignore -m dans l'espace de noms \"%s\"\n"
-
-#, fuzzy
-#~ msgid "%s/%s: invalid specification\n"
-#~ msgstr "%s/%s: spécification invalide\n"
-
-#~ msgid "No process references; use -v for the complete list\n"
-#~ msgstr ""
-#~ "Pas de références sur le processus; utiliser -v pour la liste complète\n"
+#~ msgid "Cannot open protocol file \"%s\": %s"
+#~ msgstr "¥×¥í¥È¥³¥ë¥Õ¥¡¥¤¥ë \"%s\" ¤¬³«¤±¤Þ¤»¤ó: %s"

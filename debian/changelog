@@ -1,3 +1,12 @@
+psmisc (22.3-1) unstable; urgency=low
+
+  * New upstream release
+  *   Typo fixed in fuser man page Closes: #358880
+  *   Return code set correctly in silent mode Closes: #361639
+  * Updated standards to 3.7.2
+
+ -- Craig Small <csmall@debian.org>  Wed,  9 Aug 2006 21:34:49 +1000
+
 psmisc (22.2-1) unstable; urgency=low
 
   * New upstream release
