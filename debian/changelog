@@ -1,3 +1,13 @@
+psmisc (22.4-1) unstable; urgency=low
+
+  * New upstream release
+  *  fuser correctly parses remote TCP ports Closes: #397033
+  *  Removed extra blank lines in fuser Closes: #386564
+  *  Added peekfd
+  *  killall using a path doesnt check inodes
+
+ -- Craig Small <csmall@debian.org>  Tue, 17 Apr 2007 22:09:11 +1000
+
 psmisc (22.3-1) unstable; urgency=low
 
   * New upstream release
