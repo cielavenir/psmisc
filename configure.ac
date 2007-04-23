@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
-AC_INIT([psmisc],[22.4])
+AC_INIT([psmisc],[22.5])
 AC_CONFIG_SRCDIR([src/comm.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_AUX_DIR([config])
@@ -58,6 +58,13 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_CHECK_MEMBERS([struct stat.st_rdev])
 AC_TYPE_UID_T
+AC_CHECK_MEMBERS([struct user_regs_struct.orig_eax, struct user_regs_struct.eax, struct user_regs_struct.ebx, struct user_regs_struct.ecx, struct user_regs_struct.edx], [],[], [#include <linux/user.h>])
+AM_CONDITIONAL(WANT_PEEKFD,
+ test $ac_cv_member_struct_user_regs_struct_orig_eax = yes &&
+   test $ac_cv_member_struct_user_regs_struct_eax = yes &&
+   test $ac_cv_member_struct_user_regs_struct_ebx = yes &&
+   test $ac_cv_member_struct_user_regs_struct_ecx = yes &&
+   test $ac_cv_member_struct_user_regs_struct_edx = yes )
 
 dnl Check for language stuff
 AM_GNU_GETTEXT([external])

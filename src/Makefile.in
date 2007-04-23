@@ -33,7 +33,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = fuser$(EXEEXT) killall$(EXEEXT) pstree$(EXEEXT) \
-	oldfuser$(EXEEXT) peekfd$(EXEEXT)
+	oldfuser$(EXEEXT) $(am__EXEEXT_1)
+@WANT_PEEKFD_TRUE@am__append_1 = peekfd
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -47,6 +48,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
+@WANT_PEEKFD_TRUE@am__EXEEXT_1 = peekfd$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)

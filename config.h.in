@@ -141,6 +141,21 @@
 /* Define to 1 if `st_rdev' is member of `struct stat'. */
 #undef HAVE_STRUCT_STAT_ST_RDEV
 
+/* Define to 1 if `eax' is member of `struct user_regs_struct'. */
+#undef HAVE_STRUCT_USER_REGS_STRUCT_EAX
+
+/* Define to 1 if `ebx' is member of `struct user_regs_struct'. */
+#undef HAVE_STRUCT_USER_REGS_STRUCT_EBX
+
+/* Define to 1 if `ecx' is member of `struct user_regs_struct'. */
+#undef HAVE_STRUCT_USER_REGS_STRUCT_ECX
+
+/* Define to 1 if `edx' is member of `struct user_regs_struct'. */
+#undef HAVE_STRUCT_USER_REGS_STRUCT_EDX
+
+/* Define to 1 if `orig_eax' is member of `struct user_regs_struct'. */
+#undef HAVE_STRUCT_USER_REGS_STRUCT_ORIG_EAX
+
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_DIR_H

@@ -1,3 +1,9 @@
+psmisc (22.5-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Craig Small <csmall@debian.org>  Mon, 23 Apr 2007 22:14:16 +1000
+
 psmisc (22.4-1) unstable; urgency=low
 
   * New upstream release
