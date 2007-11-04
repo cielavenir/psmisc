@@ -1,3 +1,29 @@
+Changes in ??
+=============
+2007-08-09 Craig Small
+	* killall.1 mentions you can use -SIGxxx as well as just -XXX for signal
+	  Debian #431082
+
+2007-07-04 Tomas Smetana
+	* Added support for PPC architecture for peekfd
+
+2007-06-25 Craig Small
+	* Updated the Chinese simplified po file
+
+2007-06-21 Tomas Smetana
+	* Added support for x86_64 architecture for peekfd
+
+2007-06-13 Craig Small
+	* Added Chinese simplified po file
+
+2007-05-31 Craig Small
+	* Updated Dutch, Vietnamese, Polish and Italian translations
+	* Patch for peekfd from Benno Schulenberg
+
+2007-04-30 Craig Small
+	* Fixed up NLS for fuser, patch from Benno Schulenberg
+	* killall asks for Signal (procname) if not SIGTERM
+
 Changes in 22.5
 ===============
 2007-04-18 Craig Small

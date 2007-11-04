@@ -1,3 +1,12 @@
+psmisc (22.6-1) unstable; urgency=low
+
+  * New upstream release
+  *  killall.1 mentions you can use -SIGxxx Closes: #431082
+  *  peekfd works for x86_64 and PPC
+  * Updated menu entry
+
+ -- Craig Small <csmall@debian.org>  Sun, 04 Nov 2007 17:42:30 +1100
+
 psmisc (22.5-1) unstable; urgency=low
 
   * New upstream release
