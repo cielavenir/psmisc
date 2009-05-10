@@ -70,7 +70,9 @@ void detach(void) {
 }
 
 void attach(pid_t pid) {
-	attached_pids[0] = pid;
+	if (num_attached_pids >= MAX_ATTACHED_PIDS)
+		return;
+	attached_pids[num_attached_pids] = pid;
 	if (ptrace(PTRACE_ATTACH, pid, 0, 0) == -1) {
 		fprintf(stderr, _("Error attaching to pid %i\n"), pid);
 		return;
@@ -103,7 +105,7 @@ void usage() {
 	  "  Press CTRL-C to end output.\n"));
 }
 
-int bufdiff(int pid, unsigned char *lastbuf, unsigned int addr, unsigned int len) {
+int bufdiff(pid_t pid, unsigned char *lastbuf, unsigned int addr, unsigned int len) {
 	int i;
 	for (i = 0; i < len; i++)
 		if (lastbuf[i] != (ptrace(PTRACE_PEEKTEXT, pid, addr + i, 0) & 0xff))
@@ -126,7 +128,7 @@ int main(int argc, char **argv)
     struct option options[] = {
       {"eight-bit-clean", 0, NULL, '8'},
       {"no-headers", 0, NULL, 'n'},
-      {"follow", 0, NULL, 'f'},
+      {"follow", 0, NULL, 'c'},
       {"duplicates-removed", 0, NULL, 'd'},
       {"help", 0, NULL, 'h'},
       {"version", 0, NULL, 'V'},
@@ -178,7 +180,7 @@ int main(int argc, char **argv)
       numfds = argc - optind;
       fds = malloc(sizeof(int) * numfds);
 	  for (i = 0; i < numfds; i++)
-		fds[i] = atoi(argv[optind + 1 + i]);
+		fds[i] = atoi(argv[optind + i]);
     }
 
 	attach(target_pid);
@@ -197,7 +199,7 @@ int main(int argc, char **argv)
 
 	for(;;) {
 		int status;
-		int pid = wait(&status);
+		pid_t pid = wait(&status);
 		if (WIFSTOPPED(status)) {
 #ifdef PPC
 			struct pt_regs regs;

@@ -2,7 +2,7 @@
  * pstree.c - display process tree
  *
  * Copyright (C) 1993-2002 Werner Almesberger
- * Copyright (C) 2002-2005 Craig Small
+ * Copyright (C) 2002-2008 Craig Small
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,9 +50,6 @@
 
 extern const char *__progname;
 
-#ifndef MAX_DEPTH
-#define MAX_DEPTH    100
-#endif
 #define PROC_BASE    "/proc"
 
 /* UTF-8 defines by Johan Myreen, updated by Ben Winslow */
@@ -124,7 +121,12 @@ sym_ascii =
 , *sym = &sym_ascii;
 
 static PROC *list = NULL;
-static int width[MAX_DEPTH], more[MAX_DEPTH];
+
+/* The buffers will be dynamically increased in size as needed. */
+static int capacity = 0;
+static int *width = NULL;
+static int *more = NULL;
+
 static int print_args = 0, compact = 1, user_change = 0, pids = 0, by_pid = 0,
   trunc = 1, wait_end = 0;
 #ifdef WITH_SELINUX
@@ -134,24 +136,79 @@ static int output_width = 132;
 static int cur_x = 1;
 static char last_char = 0;
 static int dumped = 0;		/* used by dump_by_user */
+static int charlen = 0;     /* length of character */
 
+/*
+ * Allocates additional buffer space for width and more as needed.
+ * The first call will allocate the first buffer.
+ *
+ * index  the index that will be used after the call
+ *        to this function.
+ */
+static void ensure_buffer_capacity(int index) {
+  if (index >= capacity) {
+    if (capacity == 0)
+      capacity = 100;
+    else
+      capacity *= 2;
+    if (!(width = realloc(width, capacity * sizeof(int))))
+      {
+        perror ("realloc");
+        exit (1);
+      }
+    if (!(more = realloc(more, capacity * sizeof(int))))
+      {
+        perror ("realloc");
+        exit (1);
+      }
+  }
+}
+
+/*
+ * Frees any buffers allocated by ensure_buffer_capacity.
+ */
+static void free_buffers() {
+  if (width != NULL)
+    {
+      free(width);
+      width = NULL;
+    }
+  if (more != NULL)
+    {
+      free(more);
+      more = NULL;
+    }
+  capacity = 0;
+}
 
 static void
 out_char (char c)
 {
-  cur_x += (c & 0xc0) != 0x80;	/* only count first UTF-8 char */
-  if (cur_x <= output_width || !trunc)
-    putchar (c);
-  if (cur_x == output_width + 1 && trunc && ((c & 0xc0) != 0x80))
+  if (charlen == 0)  /* "new" character */
   {
-    if (last_char || (c & 0x80))
-      putchar ('+');
-    else
-      {
-	last_char = c;
-	cur_x--;
-	return;
-      }
+    if ( (c & 0x80) == 0)
+    {
+      charlen = 1; /* ASCII */
+    } else if ( (c & 0xe0) == 0xc0) /* 110.. 2 bytes */
+    {
+      charlen = 2;
+    } else if ( (c & 0xf0) == 0xe0) /* 1110.. 3 bytes */
+    {
+      charlen = 3;
+    } else if ( (c & 0xf8) == 0xf0) /* 11110.. 4 bytes */
+    {
+      charlen = 4;
+    } else {
+      charlen = 1;
+    }
+    cur_x++; /* count first byte of whatever it is only */
+  }
+  charlen--;
+  if (!trunc || cur_x <= output_width)
+    putchar (c);
+  else {
+    if (trunc && (cur_x == output_width + 1))
+      putchar('+');
   }
 }
 
@@ -369,11 +426,6 @@ dump_tree (PROC * current, int level, int rep, int leaf, int last,
 
   if (!current)
     return;
-  if (level >= MAX_DEPTH - 1)
-    {
-      fprintf (stderr, _("Internal error: MAX_DEPTH not big enough.\n"));
-      exit (1);
-    }
   if (!leaf)
     for (lvl = 0; lvl < level; lvl++)
       {
@@ -437,7 +489,7 @@ dump_tree (PROC * current, int level, int rep, int leaf, int last,
   if (current->highlight && (tmp = tgetstr ("me", NULL)))
     tputs (tmp, 1, putchar);
   if (print_args)
-    {
+  {
       for (i = 0; i < current->argc; i++)
 	{
       if (i < current->argc-1) /* Space between words but not at the end of last */
@@ -460,7 +512,7 @@ dump_tree (PROC * current, int level, int rep, int leaf, int last,
 	      break;
 	    }
 	}
-    }
+  }
 #ifdef WITH_SELINUX
   if ( show_scontext || print_args || ! current->children )
 #else  /*WITH_SELINUX*/
@@ -476,6 +528,7 @@ dump_tree (PROC * current, int level, int rep, int leaf, int last,
       if (print_args)
 #endif /*WITH_SELINUX*/
 	{
+          ensure_buffer_capacity(level);
 	  more[level] = !last;
 	  width[level] = swapped + (comm_len > 1 ? 0 : -1);
 	  for (walk = current->children; walk; walk = walk->next)
@@ -485,6 +538,7 @@ dump_tree (PROC * current, int level, int rep, int leaf, int last,
     }
   else
     {
+      ensure_buffer_capacity(level);
       more[level] = !last;
       width[level] = comm_len + cur_x - offset + add;
       if (cur_x >= output_width && trunc)
@@ -560,8 +614,9 @@ read_proc (void)
   struct dirent *de;
   FILE *file;
   struct stat st;
-  char *path, comm[COMM_LEN + 1];
+  char *path, *comm;
   char *buffer;
+  size_t buffer_size;
   char readbuf[BUFSIZ+1];
   char *tmpptr;
   pid_t pid, ppid;
@@ -572,9 +627,14 @@ read_proc (void)
   int selinux_enabled=is_selinux_enabled()>0;
 #endif /*WITH_SELINUX*/
 
+  if (trunc)
+    buffer_size = output_width+1;
+  else
+    buffer_size = BUFSIZ+1;
+
   if (!print_args)
     buffer = NULL;
-  else if (!(buffer = malloc ((size_t) (output_width + 1))))
+  else if (!(buffer = malloc (buffer_size)))
     {
       perror ("malloc");
       exit (1);
@@ -608,16 +668,18 @@ read_proc (void)
 		perror (path);
 		exit (1);
 	      }
-            fread(readbuf, BUFSIZ, 1, file) ;
+            size = fread(readbuf, 1, BUFSIZ, file) ;
             if (ferror(file) == 0) 
             {
-              memset(comm, '\0', COMM_LEN+1);
-              tmpptr = strrchr(readbuf, ')'); /* find last ) */
+	      readbuf[size] = 0;
+              /*printf("readbuf: %s\n", readbuf);*/
+		/* commands may have spaces or ) in them.
+		 * so don't trust anything from the ( to the last ) */
+	      if ((comm = strchr(readbuf, '('))
+		&& (tmpptr = strrchr(comm, ')'))) {
+		++comm; *tmpptr = 0;
               /* We now have readbuf with pid and cmd, and tmpptr+2
                * with the rest */
-              /*printf("readbuf: %s\n", readbuf);*/
-              if (sscanf(readbuf, "%*d (%15[^)]", comm) == 1)
-              {
                 /*printf("tmpptr: %s\n", tmpptr+2);*/
                 if (sscanf(tmpptr+2, "%*c %d", &ppid) == 1)
                 {
@@ -681,7 +743,7 @@ read_proc (void)
 			perror (path);
 			exit (1);
 		      }
-		    if ((size = read (fd, buffer, (size_t) output_width)) < 0)
+		    if ((size = read (fd, buffer, buffer_size)) < 0)
 		      {
 			perror (path);
 			exit (1);
@@ -937,6 +999,7 @@ main (int argc, char **argv)
 	  return 1;
 	}
     }
+  free_buffers();
   if (wait_end == 1) {
     fprintf(stderr, _("Press return to close\n"));
     (void)getchar();

@@ -3,16 +3,16 @@ Section: admin
 Priority: optional
 Maintainer:  Craig Small <csmall@debian.org>
 Build-Depends: debhelper (>= 5), libncurses-dev, gettext
-Standards-Version: 3.7.2
+Standards-Version: 3.8.1
 
 Package: psmisc
 Architecture: any
-Depends: ${shlibs:Depends} ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Replaces: procps (<< 1:1.2)
-Description: Utilities that use the proc filesystem
- This package contains three little utilities that use the proc FS:
- . 
- `fuser' identifies processes using files (similar to Sun's or SGI's fuser). 
- `killall' kills processes by name, e.g. killall -HUP named. `pstree' shows
- the currently running processes as a tree
-
+Description: utilities that use the proc file system
+ This package contains miscellaneous utilities that use the proc FS:
+ .
+  - fuser: identifies processes that are using files or sockets.
+  - killall: kills processes by name (e.g. "killall -HUP named").
+  - peekfd: shows the data traveling over a file descriptor.
+  - pstree: shows currently running processes as a tree.

@@ -1,3 +1,23 @@
+psmisc (22.7-1) unstable; urgency=low
+
+  * New upstream release
+    - Changed fuser.1 so signal is SIGNAL to reduce confusion about wether
+      or not it is a parameter Closes: #517413
+    - fuser.1 references pkill(1) Closes: #517414
+    - Clarified -m and -c for fuser Closes: #467289
+    -  Patch from Arnaud Giersch to fix udp ports in fuser Closes: #502208
+    - pstree man page mentions -Z may not be available Closes: #478327
+    - pstree handles UTF-8 lengths much better Closes: #413503
+    - killall says no process found when process not found Closes: #500097
+    - pstree makes a bigger buffer for -al flags Closes: #352603
+    - peekfd off by one problem in fds Closes: #460530
+    - oldfuser removed Closes: #502212
+  * Changed rules for for cross-build support Closes: #465226
+  * Updated copyright file Closes: #517410
+  * updated package description Closes: #485693
+
+ -- Craig Small <csmall@debian.org>  Sun, 10 May 2009 16:13:36 +1000
+
 psmisc (22.6-1) unstable; urgency=low
 
   * New upstream release

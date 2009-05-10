@@ -4,7 +4,7 @@
  * Based on fuser.c Copyright (C) 1993-2005 Werner Almesberger and Craig Small
  *
  * Completely re-written
- * Copyright (C) 2005-2007 Craig Small
+ * Copyright (C) 2005-2009 Craig Small
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,7 +60,8 @@
 #define NAME_FIELD 20		/* space reserved for file name */
 /* Function defines */
 static void add_matched_proc(struct names *name_list, const pid_t pid, const uid_t uid, const char access);
-static void check_dir(const pid_t pid, const char *dirname, struct device_list *dev_head, struct inode_list *ino_head, const uid_t uid, const char access);
+static void check_dir(const pid_t pid, const char *dirname, struct device_list *dev_head, struct inode_list *ino_head, const uid_t uid, const char access,
+                      struct unixsocket_list *sockets, dev_t netdev);
 static void check_map(const pid_t pid, const char *filename, struct device_list *dev_head, struct inode_list *ino_head, const uid_t uid, const char access);
 static struct stat *get_pidstat(const pid_t pid, const char *filename);
 static uid_t getpiduid(const pid_t pid);
@@ -72,7 +73,7 @@ static void add_device(struct device_list **dev_list, struct names  *this_name, 
 void scan_mount_devices(const opt_type opts, struct mountdev_list **mount_devices);
 void fill_unix_cache(struct unixsocket_list **unixsocket_head);
 static dev_t find_net_dev(void);
-static void scan_procs(struct names *names_head, struct inode_list *ino_head, struct device_list *dev_head);
+static void scan_procs(struct names *names_head, struct inode_list *ino_head, struct device_list *dev_head, struct unixsocket_list *sockets, dev_t netdev);
 #ifdef NFS_CHECKS
 static void scan_knfsd(struct names *names_head, struct device_list *dev_head);
 #endif /* NFS_CHECKS */
@@ -86,18 +87,17 @@ static void usage (const char *errormsg)
 		fprintf(stderr, "%s\n", errormsg);
 
   fprintf (stderr, _(
-    "Usage: fuser [ -a | -s | -c ] [ -n SPACE ] [ -SIGNAL ] [ -kimuv ] NAME...\n"
-    "             [ - ] [ -n SPACE ] [ -SIGNAL ] [ -kimuv ] NAME...\n"
+    "Usage: fuser [ -fuv ] [ -a | -s ] [ -4 | -6 ] [ -c | -m | -n SPACE ] [ -k [ -i ] [ -SIGNAL ]] NAME...\n"
     "       fuser -l\n"
     "       fuser -V\n"
     "Show which processes use the named files, sockets, or filesystems.\n\n"
     "    -a        display unused files too\n"
-    "    -c        mounted FS\n"
+    "    -c        Same as \-m (for POSIX compatibility)\n"
     "    -f        silently ignored (for POSIX compatibility)\n"
     "    -i        ask before killing (ignored without -k)\n"
     "    -k        kill processes accessing the named file\n"
     "    -l        list available signal names\n"
-    "    -m        show all processes using the named filesystems\n"
+    "    -m        show all processes using the named filesystems or block device\n"
     "    -n SPACE  search in this name space (file, udp, or tcp)\n"
     "    -s        silent operation\n"
     "    -SIGNAL   send this signal instead of SIGKILL\n"
@@ -119,7 +119,7 @@ void print_version()
 {
   fprintf(stderr, _("fuser (PSmisc) %s\n"), VERSION);
   fprintf(stderr, _(
-    "Copyright (C) 1993-2005 Werner Almesberger and Craig Small\n\n"));
+    "Copyright (C) 1993-2009 Werner Almesberger and Craig Small\n\n"));
   fprintf(stderr, _(
     "PSmisc comes with ABSOLUTELY NO WARRANTY.\n"
     "This is free software, and you are welcome to redistribute it under\n"
@@ -127,7 +127,7 @@ void print_version()
     "For more information about these matters, see the files named COPYING.\n"));
 }
 
-static void scan_procs(struct names *names_head, struct inode_list *ino_head, struct device_list *dev_head)
+static void scan_procs(struct names *names_head, struct inode_list *ino_head, struct device_list *dev_head, struct unixsocket_list *sockets, dev_t netdev)
 {
 	DIR *topproc_dir;
 	struct dirent *topproc_dent;
@@ -187,9 +187,9 @@ static void scan_procs(struct names *names_head, struct inode_list *ino_head, st
 				}
 			}
 		}
-		check_dir(pid, "lib", dev_head, ino_head, uid, ACCESS_MMAP);
-		check_dir(pid, "mmap", dev_head, ino_head, uid, ACCESS_MMAP);
-		check_dir(pid, "fd", dev_head, ino_head, uid, ACCESS_FILE);
+		check_dir(pid, "lib", dev_head, ino_head, uid, ACCESS_MMAP, sockets, netdev);
+		check_dir(pid, "mmap", dev_head, ino_head, uid, ACCESS_MMAP, sockets, netdev);
+		check_dir(pid, "fd", dev_head, ino_head, uid, ACCESS_FILE, sockets, netdev);
 		check_map(pid, "maps", dev_head, ino_head, uid, ACCESS_MMAP);
 
 	} /* while topproc_dent */
@@ -821,9 +821,9 @@ int main(int argc, char *argv[])
 			case NAMESPACE_UDP:
 				asprintf(&(this_name->filename), "%s/udp", argv[optc]);
 #ifdef WITH_IPV6
-				parse_inet(this_name, ipv4_only, ipv6_only, &tcp_connection_list, &tcp6_connection_list);
+				parse_inet(this_name, ipv4_only, ipv6_only, &udp_connection_list, &udp6_connection_list);
 #else
-				parse_inet(this_name, &tcp_connection_list);
+				parse_inet(this_name, &udp_connection_list);
 #endif
 				break;
 			default: /* FILE */
@@ -872,7 +872,7 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
 	debug_match_lists(names_head, match_inodes, match_devices);
 #endif
-	scan_procs(names_head, match_inodes, match_devices);
+	scan_procs(names_head, match_inodes, match_devices, unixsockets, netdev);
 #ifdef NFS_CHECKS
     scan_knfsd(names_head, match_devices);
 #endif /* NFS_CHECKS */
@@ -992,13 +992,15 @@ static struct stat *get_pidstat(const pid_t pid, const char *filename)
 		return st;
 }
 
-static void check_dir(const pid_t pid, const char *dirname, struct device_list *dev_head, struct inode_list *ino_head, const uid_t uid, const char access)
+static void check_dir(const pid_t pid, const char *dirname, struct device_list *dev_head, struct inode_list *ino_head, const uid_t uid, const char access,
+                      struct unixsocket_list *sockets, dev_t netdev)
 {
 	char *dirpath, *filepath;
 	DIR *dirp;
 	struct dirent *direntry;
 	struct inode_list *ino_tmp;
 	struct device_list *dev_tmp;
+	struct unixsocket_list *sock_tmp;
 	struct stat st, lst;
 
 	if ( (dirpath = malloc(MAX_PATHNAME)) == NULL)
@@ -1018,6 +1020,15 @@ static void check_dir(const pid_t pid, const char *dirname, struct device_list *
 		if (stat(filepath, &st) != 0) {
 			fprintf(stderr, _("Cannot stat file %s: %s\n"),filepath, strerror(errno));
 		} else {
+			if (st.st_dev == netdev) {
+				for (sock_tmp = sockets; sock_tmp != NULL; sock_tmp = sock_tmp->next) {
+					if (sock_tmp->net_inode == st.st_ino) {
+						st.st_ino = sock_tmp->inode;
+						st.st_dev = sock_tmp->dev;
+						break;
+					}
+				}
+			}
 			for (dev_tmp = dev_head ; dev_tmp != NULL ; dev_tmp = dev_tmp->next) {
 				if (st.st_dev == dev_tmp->device) {
 					if (access == ACCESS_FILE && (lstat(filepath, &lst)==0) && (lst.st_mode & S_IWUSR)) {
