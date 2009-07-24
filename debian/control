@@ -3,7 +3,7 @@ Section: admin
 Priority: optional
 Maintainer:  Craig Small <csmall@debian.org>
 Build-Depends: debhelper (>= 5), libncurses-dev, gettext
-Standards-Version: 3.8.1
+Standards-Version: 3.8.2
 
 Package: psmisc
 Architecture: any
@@ -16,3 +16,4 @@ Description: utilities that use the proc file system
   - killall: kills processes by name (e.g. "killall -HUP named").
   - peekfd: shows the data traveling over a file descriptor.
   - pstree: shows currently running processes as a tree.
+Homepage: http://psmisc.sf.net/
