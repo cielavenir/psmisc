@@ -1,3 +1,19 @@
+psmisc (22.9-1) unstable; urgency=low
+
+  * New upstream release
+    - short option l returned in fuser Closes: #539087
+    - long options terminated with 0s Closes: #551833
+    - Fixed killall options for VTALRM and ILL Closes: #559011
+    - pstree -a does not compact threads Closes: #525632
+    - new program prtstat which prints contents of /proc/<pid>/stat
+      Closes: #281706
+    - killall restricts by date. Thanks to George Danchev Closes: #544657
+    - New fuser -M option limits -m to top of mount points
+  * Updated to standards version 3.8.3
+  * Moved to debhelper compat 7 and simpler rules
+
+ -- Craig Small <csmall@debian.org>  Sun, 27 Dec 2009 18:36:35 +1100
+
 psmisc (22.8-1) unstable; urgency=low
 
   * New upstream release
