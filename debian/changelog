@@ -1,3 +1,12 @@
+psmisc (22.10-1) unstable; urgency=low
+
+  * New upstream release
+    - fuser -k -m ... won't kill itself Closes: #562767
+    - fuser -NAME fixed Closes: #563388
+    - Reversed normal file fuser -k check Closes: #563387
+
+ -- Craig Small <csmall@debian.org>  Mon, 04 Jan 2010 21:43:16 +1100
+
 psmisc (22.9-1) unstable; urgency=low
 
   * New upstream release
