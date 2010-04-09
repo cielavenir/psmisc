@@ -1,3 +1,10 @@
+psmisc (22.11-1) unstable; urgency=low
+
+  * New upstream release
+    - Another attempted at killall -SIGNAME Closes: #573924
+
+ -- Craig Small <csmall@debian.org>  Fri, 09 Apr 2010 21:24:58 +1000
+
 psmisc (22.10-1) unstable; urgency=low
 
   * New upstream release
