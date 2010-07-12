@@ -1,3 +1,12 @@
+psmisc (22.12-1) unstable; urgency=low
+
+  * New upstream release
+   - In fuser, switched the ipv6 and ipv4 checks around Closes: #581604
+   - pstree -a doesn't segfault on grsec kernels Closes: #588152
+  * Updated to standards version 3.9.0
+
+ -- Craig Small <csmall@debian.org>  Mon, 12 Jul 2010 21:39:03 +1000
+
 psmisc (22.11-1) unstable; urgency=low
 
   * New upstream release
