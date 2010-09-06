@@ -1,3 +1,14 @@
+psmisc (22.13-1) unstable; urgency=low
+
+  * New upstream release
+    -  patch configure so pt_regs isn't used on SuperH. Fix by 
+       Nobuhiro Iwamatsu in Closes: #588986
+    -  Cannot build peekfd on mips only mipsel, hopefully will unblock mips
+       buildd
+  * Updated to standards version 3.9.1, no changes
+
+ -- Craig Small <csmall@debian.org>  Mon, 06 Sep 2010 13:35:21 +1000
+
 psmisc (22.12-1) unstable; urgency=low
 
   * New upstream release
