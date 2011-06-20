@@ -1,3 +1,13 @@
+psmisc (22.14-1) unstable; urgency=low
+
+  * New upstream release, many fixes including:
+      killall creates right size buffer instead of MAX_PATH Closes: #623425
+      fuser understands IPv6 addresses, removed comment in fuser.1 that it
+      doesn't Closes: #609904
+  * Updated to standards 3.9.2 no change
+
+ -- Craig Small <csmall@debian.org>  Mon, 20 Jun 2011 22:28:44 +1000
+
 psmisc (22.13-1) unstable; urgency=low
 
   * New upstream release
