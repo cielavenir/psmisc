@@ -85,6 +85,9 @@
 /* Define to 1 if you have the `nl_langinfo' function. */
 #undef HAVE_NL_LANGINFO
 
+/* Define to 1 if you have the `rawmemchr' function. */
+#undef HAVE_RAWMEMCHR
+
 /* Define to 1 if your system has a GNU libc compatible `realloc' function,
    and to 0 otherwise. */
 #undef HAVE_REALLOC
@@ -251,6 +254,9 @@
 
 /* Use Security-Enhanced Linux features */
 #undef WITH_SELINUX
+
+/* Use timeout on stat calls */
+#undef WITH_TIMEOUT_STAT
 
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS
