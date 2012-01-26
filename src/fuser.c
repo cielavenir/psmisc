@@ -50,7 +50,10 @@
 #include "signals.h"
 #include "i18n.h"
 
-/*#define DEBUG 1
+/*
+#define DEBUG 1
+*/
+/*
 #define NFS_CHECKS 
 */
 
@@ -249,7 +252,7 @@ static void add_ip6_conn(struct ip6_connections **ip_list, const char *protocol,
 	ip_tmp->name = this_name;
 	ip_tmp->lcl_port = lcl_port;
 	ip_tmp->rmt_port = rmt_port;
-	memcpy(&(ip_tmp->rmt_port),&(rmt_port),sizeof(struct in6_addr));
+	memcpy(&(ip_tmp->rmt_address),&(rmt_address),sizeof(struct in6_addr));
 	ip_tmp->next = ip_head;
 
 	*ip_list = ip_tmp;
@@ -443,7 +446,9 @@ int parse_inet(struct names *this_name, struct ip_connections **ip_list)
 			}
 		}
 	}
-	/*printf("parsed to lp %s rh %s rp %s\n", lcl_port_str, rmt_addr_str, rmt_port_str);*/
+#ifdef DEBUG
+	printf("parsed to lp %s rh %s rp %s\n", lcl_port_str, rmt_addr_str, rmt_port_str);
+#endif
 
 	memset(&hints, 0, sizeof(hints));
 #ifdef WITH_IPV6
@@ -502,13 +507,21 @@ int parse_inet(struct names *this_name, struct ip_connections **ip_list)
 			for(resptr = res ; resptr != NULL ; resptr = resptr->ai_next ) {
 				switch(resptr->ai_family) {
 					case AF_INET:
-						sin = (struct sockaddr_in*)resptr->ai_addr;
+                      sin = (struct sockaddr_in*)resptr->ai_addr;
+                      if (rmt_addr_str == NULL) {
+						add_ip_conn(ip_list, protocol, this_name, ntohs(lcl_port), ntohs(sin->sin_port), INADDR_ANY);
+                      } else {
 						add_ip_conn(ip_list, protocol, this_name, ntohs(lcl_port), ntohs(sin->sin_port), sin->sin_addr.s_addr);
+                      }
 					break;
 #ifdef WITH_IPV6
 				case AF_INET6:
-					sin6 = (struct sockaddr_in6*)resptr->ai_addr;
-						add_ip6_conn(ip6_list, protocol, this_name, ntohs(lcl_port), ntohs(sin6->sin6_port), sin6->sin6_addr);
+                    sin6 = (struct sockaddr_in6*)resptr->ai_addr;
+                    if (rmt_addr_str == NULL) {
+						add_ip6_conn(ip6_list, protocol, this_name, ntohs(lcl_port), ntohs(sin6->sin6_port), in6addr_any);
+                    } else {
+                      add_ip6_conn(ip6_list, protocol, this_name, ntohs(lcl_port), ntohs(sin6->sin6_port), sin6->sin6_addr);
+                    }
 					break;
 #endif
 				}
@@ -545,18 +558,26 @@ void find_net_sockets(struct inode_list **ino_list, struct ip_connections *conn_
 			&rmt_port,
 			&scanned_inode) != 4)
 			continue;
-		/*printf("Found *:%lu with %s:%lu\n", loc_port, inet_ntoa(*((struct in_addr*)&rmt_addr)), rmt_port);*/
+#ifdef DEBUG
+		printf("Found IPv4 *:%lu with %s:%lu\n", loc_port, inet_ntoa(*((struct in_addr*)&rmt_addr)), rmt_port);
+#endif /* DEBUG */
 		inode = scanned_inode;
 		for(conn_tmp = conn_list ; conn_tmp != NULL ; conn_tmp = conn_tmp->next) {
-			/*printf("Comparing with *.%lu %s:%lu ...", 
+#ifdef DEBUG
+			printf("  Comparing with *.%lu %s:%lu\n", 
 					conn_tmp->lcl_port,
 					inet_ntoa(conn_tmp->rmt_address),
-					conn_tmp->rmt_port);*/
-			if (conn_tmp->lcl_port == loc_port &&
-					conn_tmp->rmt_port == rmt_port &&
-					(memcmp(&(conn_tmp->rmt_address), &(rmt_addr),4) ==0)
+					conn_tmp->rmt_port);
+#endif
+			if ( (conn_tmp->lcl_port == 0 || conn_tmp->lcl_port == loc_port) &&
+				 (conn_tmp->rmt_port == 0 || conn_tmp->rmt_port == rmt_port) &&
+                 (conn_tmp->rmt_address.s_addr == INADDR_ANY ||
+					(memcmp(&(conn_tmp->rmt_address), &(rmt_addr),4) ==0))
 			   ) {
 				/* add inode to list */
+#ifdef DEBUG
+                printf("Added inode!\n");
+#endif /* DEBUG */
 				add_inode(ino_list, conn_tmp->name, netdev, inode);
 			}
 		}
@@ -587,7 +608,7 @@ void find_net6_sockets(struct inode_list **ino_list, struct ip6_connections *con
 
 	if ( (fp = fopen(pathname, "r")) == NULL) {
 #ifdef DEBUG
-		fprintf(stderr, _("Cannot open protocol file \"%s\": %s\n"), pathname, strerror(errno));
+		printf("Cannot open protocol file \"%s\": %s\n", pathname, strerror(errno));
 #endif /* DEBUG */
 		return ;
 	}
@@ -606,16 +627,21 @@ void find_net6_sockets(struct inode_list **ino_list, struct ip6_connections *con
 		rmt_addr.s6_addr32[2] = tmp_addr[2];
 		rmt_addr.s6_addr32[3] = tmp_addr[3];
 		inet_ntop(AF_INET6, &rmt_addr, rmt_addr6str, INET6_ADDRSTRLEN);
-		/*printf("Found %ld with %s:%ld\n", loc_port, rmt_addr6str, rmt_port);*/
+#ifdef DEBUG
+		printf("Found IPv6 %ld with %s:%ld\n", loc_port, rmt_addr6str, rmt_port);
+#endif /* DEBUG */
 		for(conn_tmp = conn_list ; conn_tmp != NULL ; conn_tmp = conn_tmp->next) {
 			inet_ntop(AF_INET6, &conn_tmp->rmt_address, rmt_addr6str, INET6_ADDRSTRLEN);
-			/*printf("Comparing with *.%lu %s:%lu ...\n\n", 
+#ifdef DEBUG
+			printf("  Comparing with *.%lu %s:%lu ...\n", 
 					conn_tmp->lcl_port,
 					rmt_addr6str,
-					conn_tmp->rmt_port);*/
-			if (conn_tmp->lcl_port == loc_port &&
-					conn_tmp->rmt_port == rmt_port &&
-					(memcmp(&(conn_tmp->rmt_address), &(rmt_addr),16) ==0)
+					conn_tmp->rmt_port);
+#endif /* DEBUG */
+			if ( (conn_tmp->lcl_port == 0 || conn_tmp->lcl_port == loc_port) &&
+				  (conn_tmp->rmt_port == 0 || conn_tmp->rmt_port == rmt_port) &&
+                  (memcmp(&(conn_tmp->rmt_address), &in6addr_any,16) == 0 ||
+					(memcmp(&(conn_tmp->rmt_address), &(rmt_addr),16) ==0))
 			   ) {
 				add_inode(ino_list, conn_tmp->name, netdev, inode);
 			}
@@ -863,7 +889,7 @@ static int print_matches(struct names *names_head, const opt_type opts, const in
 		} else { /* We're not silent */
     			if (nptr->matched_procs != NULL || opts & OPT_ALLFILES) {
     				if (head == 0 && opts & OPT_VERBOSE) {
-    					fprintf(stderr, _("\n%*s USER        PID ACCESS COMMAND\n"),
+    					fprintf(stderr, _("%*s USER        PID ACCESS COMMAND\n"),
     				        	NAME_FIELD, "");
     					head = 1;
     				}
@@ -926,8 +952,14 @@ static int print_matches(struct names *names_head, const opt_type opts, const in
     				len = 0;
     				first = 0;
     			}
-    			if (nptr->matched_procs != NULL || opts & OPT_ALLFILES)
+                if (opts & OPT_VERBOSE) {
+                  /* put a newline if showing all files and no procs*/
+                  if (nptr->matched_procs == NULL && (opts & OPT_ALLFILES))
+                    putc('\n', stderr);
+                } else {
+    			  if (nptr->matched_procs != NULL || (opts & OPT_ALLFILES))
     				putc('\n', stderr);
+                }
 		} /* be silent */
 		if (opts & OPT_KILL)
 			kill_matched_proc(nptr->matched_procs,  opts, sig_number);
@@ -1216,7 +1248,7 @@ static void scan_knfsd(struct names *names_head, struct device_list *dev_head)
 
     if ( (fp = fopen(KNFSD_EXPORTS, "r")) == NULL) {
 #ifdef DEBUG
-      fprintf(stderr, "Cannot open %s\n", KNFSD_EXPORTS);
+      printf("Cannot open %s\n", KNFSD_EXPORTS);
 #endif
       return;
     }

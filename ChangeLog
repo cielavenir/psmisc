@@ -1,3 +1,36 @@
+Changes in 22.4
+===============
+2007-04-11 Craig Small
+	* fuser correctly parses remote tcp ports Debian #397033
+	* Removed extra blank lines in fuser Debian #386564
+
+2007-03-02  Karel Zak
+	* killall <path> does textual path comparision with value of the
+	  /proc/<pid>/exe link when a comparision with inode number failed.
+	  The old algorithme based on inode numbers doesn't work if since
+	  the process was started, the file at <path> has been replaced
+	  (e.g due prelink process).
+
+2007-03-02 Craig Small
+	* Added peekfd
+
+2007-03-02  gettextize  <bug-gnu-gettext@gnu.org>
+
+	* m4/gettext.m4: Upgrade to gettext-0.16.1.
+	* m4/iconv.m4: Upgrade to gettext-0.16.1.
+	* m4/lib-ld.m4: Upgrade to gettext-0.16.1.
+	* m4/lib-link.m4: Upgrade to gettext-0.16.1.
+	* m4/lib-prefix.m4: Upgrade to gettext-0.16.1.
+	* m4/nls.m4: Upgrade to gettext-0.16.1.
+	* m4/po.m4: Upgrade to gettext-0.16.1.
+	* m4/progtest.m4: Upgrade to gettext-0.16.1.
+	* configure.ac (AM_GNU_GETTEXT_VERSION): Bump to 0.16.1.
+
+2006-09-28 Craig Small
+	* fuser tcp works on 64bit, after actually reading the submitted patch
+	  and applying it, thankyou nigel_ding, SF# 1551731
+	* Added Russian translation SF Patch #1288068
+
 Changes in 22.3
 ================
 2006-08-09 Craig Small
