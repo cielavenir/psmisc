@@ -1,0 +1,31 @@
+psmisc
+======
+
+This package contains four little utilities that use the proc FS:
+
+  fuser     identifies processes using files or sockets (similar to Sun's
+	    or SGI's fuser)
+  killall   kills processes by name, e.g. killall -HUP named
+  pidof	    like killall, buts lists PIDs instead of killing processes
+  pstree    shows the currently running processes as a tree
+
+They should work with most recent kernels. Man pages are included.
+
+- Werner Almesberger <Werner.Almesberger@epfl.ch>
+
+src/loop.h was stolen from util-linux package which in turn stole it from
+the Linux kernel.
+
+Translations
+------------
+My thanks for the various translators who have cheerfully given me the po
+files to make psmisc speak different languages.  If your language is not
+supported then let me know, all it takes is translating one file in 
+a certain manner.
+
+Icons
+-----
+The pstree icons were drawn by Tatlin at Coresis who has given permission
+for them to be used for psmisc.
+
+  - Craig
