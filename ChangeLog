@@ -1,7 +1,21 @@
+Changes in 22.1
+===============
+2006-01-12 Craig Small
+	* Updated German PO file Debian #313934
+	* Updated Swedish PO file
+
+2006-01-04 Craig Small
+	* fuser signals eg -INT work better
+	* removed space out of fuser man page for -signal
+
+2005-12-16 Craig Small
+	* fuser -s flag works Debian #344901
+	* fix grep lines in Makefile for i386 arches Debian #344172
+	* Updsated Polish PO file
 
 Changes in 21.9
 ===============
-2005-12-16 Craig Small <csmall@small.dropbear.id.au>
+2005-12-16 Craig Small 
 	* Fixed install-exec-hook so only symlink pstree.x11 if file does not
 	exist already.
 	* Updated Vietnamese PO file
