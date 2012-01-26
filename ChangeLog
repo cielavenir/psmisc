@@ -1,3 +1,20 @@
+
+Changes in 22.9
+===============
+	* short option l returned in fuser Debian #539087
+	* long options terminated with 0s Debian #551833
+	* fuser only kills normal processes, patch thanks to Erik Li SF# 2892724
+	* New fuser -M if you REALLY want mount points, patch thanks to
+	  Jeremie LE HEN SF#2899709
+	* Fixed killall options for VTALRM and ILL Debian #559011
+	* pstree -a does not compact threads Debian #525632
+	* new program prtstat which prints contents of /proc/<pid>/stat 
+	  Debian #281706
+	* killall restricts by date. Thanks to George Danchev Debian #544657
+	* long options terminated in pstree too to stop segfault
+	* Re-worked fuser getopt again so -KILL options work Gentoo #297423
+	* Fix off-by-one overflow in pstree SF# 2832375
+
 Changes in 22.8
 ===============
 	* Added Czech PO file
