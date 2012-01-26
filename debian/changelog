@@ -1,3 +1,15 @@
+psmisc (22.15-1) unstable; urgency=low
+
+  * New upstream release
+    - Use ENOENT not EBADE for FreeBSD Closes: #631566
+    - Really apply fuser -s patch Closes: #606177
+  * Don't install peekfd.1 on kfreebsd Closes: #609842
+  * fuser: silence if read error is ENOENT Closes: #629048
+  * Updated to debhelper compat 9
+  * Changed copyright format to DEP-5
+
+ -- Craig Small <csmall@debian.org>  Thu, 26 Jan 2012 18:21:05 +1100
+
 psmisc (22.14-1) unstable; urgency=low
 
   * New upstream release, many fixes including:
