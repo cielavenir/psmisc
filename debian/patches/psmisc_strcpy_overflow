@@ -1,0 +1,42 @@
+Description: Make COMM larger and use strncpy
+ The COMM_LEN paramter is set to 16 because all command line entries
+ in the kernel are a maximum of 16 characters... except when they are
+ 17 characters.
+ .
+ This patch makes COMM_LEN 17 characters long and also uses strncpy
+ instead of strcpy so if it gets bigger again we won't overflow the
+ buffer.
+Bug-Debian: http://bugs.debian.org/657527
+Author: Craig Small <csmall@debian.org>
+Last-Update: 2012-01-27
+--- a/src/pstree.c
++++ b/src/pstree.c
+@@ -264,7 +264,7 @@
+         perror("malloc");
+         exit(1);
+     }
+-    strcpy(new->comm, comm);
++    strncpy(new->comm, comm,COMM_LEN);
+     new->pid = pid;
+     new->uid = uid;
+     new->flags = 0;
+@@ -352,7 +352,7 @@
+         this = new_proc(comm, pid, uid);
+ #endif                                /*WITH_SELINUX */
+     else {
+-        strcpy(this->comm, comm);
++        strncpy(this->comm, comm, COMM_LEN);
+         this->uid = uid;
+     }
+     if (args)
+--- a/src/comm.h
++++ b/src/comm.h
+@@ -11,7 +11,7 @@
+ #define COMM_LEN sizeof(dummy.comm)
+ extern struct task_struct dummy;
+ #else
+-#define COMM_LEN 16		/* synchronize with size of comm in struct task_struct in
++#define COMM_LEN 17		/* synchronize with size of comm in struct task_struct in
+ 				   /usr/include/linux/sched.h */
+ #endif
+ 
