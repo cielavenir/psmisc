@@ -26,12 +26,38 @@
 #include <sys/ptrace.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <linux/user.h>
+#include <sys/syscall.h>
+#include <byteswap.h>
+#include <endian.h>
+#include <sys/user.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <ctype.h>
 
 #include "i18n.h"
+
+#ifdef I386
+	#define REG_ORIG_ACCUM orig_eax
+	#define REG_ACCUM eax
+	#define REG_PARAM1 ebx
+	#define REG_PARAM2 ecx
+	#define REG_PARAM3 edx
+#elif X86_64
+	#define REG_ORIG_ACCUM orig_rax
+	#define REG_ACCUM rax
+	#define REG_PARAM1 rdi
+	#define REG_PARAM2 rsi
+	#define REG_PARAM3 rdx
+#elif PPC
+	#define REG_ORIG_ACCUM gpr[0]
+	#define REG_ACCUM gpr[3]
+	#define REG_PARAM1 orig_gpr3
+	#define REG_PARAM2 gpr[4]
+	#define REG_PARAM3 gpr[5]
+#ifndef PT_ORIG_R3
+	#define PT_ORIG_R3 34
+#endif
+#endif
 
 #define MAX_ATTACHED_PIDS 1024
 int num_attached_pids = 0;
@@ -106,11 +132,6 @@ int main(int argc, char **argv)
       {"version", 0, NULL, 'V'},
     };
 
-	if (argc < 2) {
-		usage();
-		return 1;
-	}
-
   /* Setup the i18n */
 #ifdef ENABLE_NLS
     setlocale(LC_ALL, "");
@@ -118,7 +139,12 @@ int main(int argc, char **argv)
     textdomain(PACKAGE);
 #endif
 
-	while ((optc = getopt_long(argc, argv, "8nfdhV",options, NULL)) != -1) {
+	if (argc < 2) {
+		usage();
+		return 1;
+	}
+
+	while ((optc = getopt_long(argc, argv, "8ncdhV",options, NULL)) != -1) {
 		switch(optc) {
 			case '8':
 				eight_bit_clean = 1;
@@ -173,39 +199,50 @@ int main(int argc, char **argv)
 		int status;
 		int pid = wait(&status);
 		if (WIFSTOPPED(status)) {
+#ifdef PPC
+			struct pt_regs regs;
+			regs.gpr[0] = ptrace(PTRACE_PEEKUSER, pid, 4 * PT_R0, 0);
+			regs.gpr[3] = ptrace(PTRACE_PEEKUSER, pid, 4 * PT_R3, 0);
+			regs.gpr[4] = ptrace(PTRACE_PEEKUSER, pid, 4 * PT_R4, 0);
+			regs.gpr[5] = ptrace(PTRACE_PEEKUSER, pid, 4 * PT_R5, 0);
+			regs.orig_gpr3 = ptrace(PTRACE_PEEKUSER, pid, 4 * PT_ORIG_R3, 0);
+#else
 			struct user_regs_struct regs;
 			ptrace(PTRACE_GETREGS, pid, 0, &regs);
-		
+#endif		
 			/*unsigned int b = ptrace(PTRACE_PEEKTEXT, pid, regs.eip, 0);*/
-	
-			if (follow_forks && (regs.orig_eax == 2 || regs.orig_eax == 120)) {
-				if (regs.eax > 0)
-					attach(regs.eax);					
+			if (follow_forks && (regs.REG_ORIG_ACCUM == SYS_fork || regs.REG_ORIG_ACCUM == SYS_clone)) {
+				if (regs.REG_ACCUM > 0)
+					attach(regs.REG_ACCUM);					
 			}
-			if ((regs.orig_eax == 3 || regs.orig_eax == 4) && (regs.edx == regs.eax)) {
+			if ((regs.REG_ORIG_ACCUM == SYS_read || regs.REG_ORIG_ACCUM == SYS_write) && (regs.REG_PARAM3 == regs.REG_ACCUM)) {
 				for (i = 0; i < numfds; i++)
-					if (fds[i] == regs.ebx)
+					if (fds[i] == regs.REG_PARAM1)
 						break;
 				if (i != numfds || numfds == 0) {
-					if (regs.ebx != lastfd || regs.orig_eax != lastdir) {
-						lastfd = regs.ebx;
-						lastdir = regs.orig_eax;
+					if (regs.REG_PARAM1 != lastfd || regs.REG_ORIG_ACCUM != lastdir) {
+						lastfd = regs.REG_PARAM1;
+						lastdir = regs.REG_ORIG_ACCUM;
 						if (!no_headers)
-							printf("\n%sing fd %i:\n", regs.orig_eax == 3 ? "read" : "writ", lastfd);
+							printf("\n%sing fd %i:\n", regs.REG_ORIG_ACCUM == SYS_read ? "read" : "writ", lastfd);
 					}
 					if (!remove_duplicates || lastbuf == NULL
-							||  last_buf_size != regs.edx || 
-							bufdiff(pid, lastbuf, regs.ecx, regs.edx)) {
+							||  last_buf_size != regs.REG_PARAM3 || 
+							bufdiff(pid, lastbuf, regs.REG_PARAM2, regs.REG_PARAM3)) {
 
 						if (remove_duplicates) {
 							if (lastbuf)
 								free(lastbuf);
-							lastbuf = malloc(regs.edx);
-							last_buf_size = regs.edx;
+							lastbuf = malloc(regs.REG_PARAM3);
+							last_buf_size = regs.REG_PARAM3;
 						}
 
-						for (i = 0; i < regs.edx; i++) {
-							unsigned int a = ptrace(PTRACE_PEEKTEXT, pid, regs.ecx + i, 0);
+						for (i = 0; i < regs.REG_PARAM3; i++) {
+#ifdef _BIG_ENDIAN
+							unsigned int a = bswap_32(ptrace(PTRACE_PEEKTEXT, pid, regs.REG_PARAM2 + i, 0));
+#else
+							unsigned int a = ptrace(PTRACE_PEEKTEXT, pid, regs.REG_PARAM2 + i, 0);
+#endif
 							if (remove_duplicates)
 								lastbuf[i] = a & 0xff;
 

@@ -33,8 +33,14 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = fuser$(EXEEXT) killall$(EXEEXT) pstree$(EXEEXT) \
-	oldfuser$(EXEEXT) $(am__EXEEXT_1)
-@WANT_PEEKFD_TRUE@am__append_1 = peekfd
+	oldfuser$(EXEEXT) $(am__EXEEXT_1) $(am__EXEEXT_2) \
+	$(am__EXEEXT_3)
+@WANT_PEEKFD_I386_TRUE@am__append_1 = peekfd
+@WANT_PEEKFD_I386_TRUE@am__append_2 = -DI386
+@WANT_PEEKFD_X86_64_TRUE@am__append_3 = peekfd
+@WANT_PEEKFD_X86_64_TRUE@am__append_4 = -DX86_64
+@WANT_PEEKFD_PPC_TRUE@am__append_5 = peekfd
+@WANT_PEEKFD_PPC_TRUE@am__append_6 = -DPPC
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -48,7 +54,9 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-@WANT_PEEKFD_TRUE@am__EXEEXT_1 = peekfd$(EXEEXT)
+@WANT_PEEKFD_I386_TRUE@am__EXEEXT_1 = peekfd$(EXEEXT)
+@WANT_PEEKFD_X86_64_TRUE@am__EXEEXT_2 = peekfd$(EXEEXT)
+@WANT_PEEKFD_PPC_TRUE@am__EXEEXT_3 = peekfd$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -197,7 +205,8 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CFLAGS = -Wall -DLOCALEDIR=\"/usr/share/locale\"
+AM_CFLAGS = -Wall -DLOCALEDIR=\"/usr/share/locale\" $(am__append_2) \
+	$(am__append_4) $(am__append_6)
 oldfuser_SOURCES = oldfuser.c comm.h signals.c signals.h loop.h i18n.h
 fuser_SOURCES = fuser.c comm.h signals.c signals.h i18n.h fuser.h
 killall_SOURCES = killall.c comm.h signals.c signals.h i18n.h
