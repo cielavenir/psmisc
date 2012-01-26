@@ -48,6 +48,12 @@
 #include <signal.h>
 #include <getopt.h>
 #include <setjmp.h>
+#include <limits.h>
+/* MAXSYMLINKS is a BSDism.  If it doesn't exist, fall back to SYMLINK_MAX,
+   which is the POSIX name. */
+#ifndef MAXSYMLINKS
+#define MAXSYMLINKS SYMLINK_MAX
+#endif
 
 #include "fuser.h"
 #include "signals.h"
@@ -106,7 +112,11 @@ static dev_t device(const char *path);
 static char *expandpath(const char *path);
 
 typedef int (*stat_t)(const char*, struct stat*);
+#ifdef WITH_TIMEOUT_STAT
 static int timeout(stat_t func, const char *path, struct stat *buf, unsigned int seconds);
+#else
+#define timeout(func,path,buf,dummy) (func)((path),(buf))
+#endif /* WITH_TIMEOUT_STAT */
 
 static void usage(const char *errormsg)
 {
@@ -1160,8 +1170,13 @@ print_matches(struct names *names_head, const opt_type opts,
 
 	for (nptr = names_head; nptr != NULL; nptr = nptr->next) {
 		if (opts & OPT_SILENT) {
-            if (nptr->matched_procs != NULL)
-                have_match = 1;
+			for (pptr = nptr->matched_procs; pptr != NULL;
+			     pptr = pptr->next) {
+				if(pptr->proc_type != PTYPE_NORMAL)
+					continue;
+
+				have_match = 1;
+			}
 		} else {	/* We're not silent */
 			if ((opts & OPT_ALLFILES) == 0) {
 				name_has_procs = 0;
@@ -1222,7 +1237,7 @@ print_matches(struct names *names_head, const opt_type opts,
 							pwent->pw_name);
 				}
 				if (pptr->proc_type == PTYPE_NORMAL)
-					printf("%6d", pptr->pid);
+					printf(" %5d", pptr->pid);
 				else
 					printf("kernel");
 				fflush(stdout);
@@ -1316,12 +1331,11 @@ static struct stat *get_pidstat(const pid_t pid, const char *filename)
 	if ((st = (struct stat*)malloc(sizeof(struct stat))) == NULL)
 		return NULL;
 	snprintf(pathname, 256, "/proc/%d/%s", pid, filename);
-	if (timeout(stat, pathname, st, 5) != 0)
-		goto out;
+	if (timeout(stat, pathname, st, 5) != 0) {
+      free(st);
+	  return NULL;
+    }
 	return st;
-out:
-	free(st);
-	return NULL;
 }
 
 static void
@@ -1771,6 +1785,7 @@ scan_swaps(struct names *names_head, struct inode_list *ino_head,
  */
 static sigjmp_buf jenv;
 
+#ifdef HAVE_TIMEOUT_STAT
 static void
 sigalarm(int sig)
 {
@@ -1820,12 +1835,14 @@ timeout(stat_t func, const char *path, struct stat *buf, unsigned int seconds)
 		(void) alarm(0);
 		(void) signal(SIGALRM, SIG_DFL);
 		close(pipes[0]);
+        waitpid(pid, NULL, 0);
 		break;
 	}
 	return ret;
 err:
 	return -1;
 }
+#endif /* HAVE_TIMEOUT_STAT */
 
 #ifdef _LISTS_H
 /*
@@ -1901,7 +1918,11 @@ init_mntinfo(void)
 		}
 	}
 	if (!list_empty(&mntinfo)) {
+#ifdef EBADE
 		errno = EBADE;
+#else
+        errno = ENOENT;
+#endif /* EBADE */
 	}
 	join(&sort, &mntinfo);
 }
@@ -1967,7 +1988,11 @@ char* expandpath(const char * path)
 	if (*path != '/') {
 		if (!getcwd(curr, PATH_MAX))
 			return (char*)0;
+#ifdef HAVE_RAWMEMCHR
 		dest = rawmemchr(curr, '\0');
+#else
+		dest = strchr(curr, '\0');
+#endif
 	} else {
 		*curr = '/';
 		dest = curr + 1;

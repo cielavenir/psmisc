@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
-AC_INIT([psmisc],[22.14])
+AC_INIT([psmisc],[22.15])
 AC_CONFIG_SRCDIR([src/comm.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_AUX_DIR([config])
@@ -23,6 +23,16 @@ if test "$enable_selinux" = "yes"; then
      AC_MSG_ERROR([Cannot find selinux static library]) ])
 fi
 AC_SUBST([SELINUX_LIB])
+
+dnl Call fork before all stat calls to stop hanging on NFS mounts
+AC_SUBST([WITH_TIMEOUT_STAT])
+AC_ARG_ENABLE([timeout_stat],
+  [AS_HELP_STRING([--enable-timeout-stat], [Use a timeout on stat calls])],
+  [enable_timeout_stat=$enableval],
+  [enable_timeout_stat="no"])
+if test "$enable_timeout_stat" = "yes"; then
+  AC_DEFINE([WITH_TIMEOUT_STAT], [1], [Use timeout on stat calls])
+fi
 
 dnl ipv4 only option
 AC_SUBST([WITH_IPV6])
@@ -58,8 +68,8 @@ AC_CHECK_MEMBERS([struct stat.st_rdev])
 AC_TYPE_UID_T
 
 dnl Check for language stuff
-AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.16.1])
+AM_GNU_GETTEXT([external])
 
 dnl Must be after the gettext stuff as it sets build_cpu
 AC_CHECK_MEMBERS([struct user_regs_struct.orig_eax,
@@ -112,7 +122,7 @@ AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
 AC_FUNC_REALLOC
 AC_FUNC_STAT
-AC_CHECK_FUNCS([atexit getmntent memset nl_langinfo regcomp rpmatch setlocale socket strcasecmp strchr strdup strerror strpbrk strrchr strtoul])
+AC_CHECK_FUNCS([atexit getmntent memset nl_langinfo rawmemchr regcomp rpmatch setlocale socket strcasecmp strchr strdup strerror strpbrk strrchr strtoul])
 
 dnl Checks for Large File System
 AC_SYS_LARGEFILE
