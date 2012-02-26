@@ -1,3 +1,11 @@
+psmisc (22.16-1) unstable; urgency=low
+
+  * New upstream release
+  * previous strcpy buffer fix broke long command matches
+    this release fixes both Closes: #661145, #657543
+
+ -- Craig Small <csmall@debian.org>  Sun, 26 Feb 2012 17:07:06 +1100
+
 psmisc (22.15-2) unstable; urgency=low
 
   * Removed strcpy buffer overflow in pstree Closes: #657527
