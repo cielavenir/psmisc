@@ -3,7 +3,7 @@ Section: admin
 Priority: optional
 Maintainer:  Craig Small <csmall@debian.org>
 Build-Depends: debhelper (>= 9.0.0), libncurses-dev, gettext
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 
 Package: psmisc
 Architecture: any

@@ -1,3 +1,12 @@
+psmisc (22.17-1) unstable; urgency=low
+
+  * New upstream release
+    - fuser uses correct timeout_stat define Closes: #661723
+    - fuser is not compiled on hurd-i386 Closes: #673485
+
+
+ -- Craig Small <csmall@debian.org>  Sat, 02 Jun 2012 16:09:01 +1000
+
 psmisc (22.16-1) unstable; urgency=low
 
   * New upstream release
