@@ -1,7 +1,10 @@
 
 AM_CFLAGS = -Wall -DLOCALEDIR=\"/usr/share/locale\" @HARDEN_CFLAGS@
 
-bin_PROGRAMS = fuser killall pstree prtstat
+bin_PROGRAMS = killall pstree prtstat
+if WANT_FUSER
+  bin_PROGRAMS += fuser
+endif
 if WANT_PEEKFD_I386
   bin_PROGRAMS += peekfd
   AM_CFLAGS += -DI386
@@ -24,6 +27,9 @@ if WANT_PEEKFD_MIPS
 endif
 
 fuser_SOURCES = fuser.c comm.h signals.c signals.h i18n.h fuser.h lists.h
+if WANT_TIMEOUT_STAT
+  fuser_SOURCES += timeout.c timeout.h
+endif
 
 fuser_LDADD = @LIBINTL@
 

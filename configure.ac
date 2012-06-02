@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.68])
 AC_CONFIG_MACRO_DIR([m4])
-AC_INIT([psmisc],[22.16])
+AC_INIT([psmisc],[22.17])
 AC_CONFIG_SRCDIR([src/comm.h])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_AUX_DIR([config])
@@ -30,12 +30,16 @@ AC_SUBST([SELINUX_LIB])
 # Call fork before all stat calls to stop hanging on NFS mounts
 AC_SUBST([WITH_TIMEOUT_STAT])
 AC_ARG_ENABLE([timeout_stat],
-  [AS_HELP_STRING([--enable-timeout-stat], [Use a timeout on stat calls])],
+  [AS_HELP_STRING([--enable-timeout-stat], [Use a timeout on stat calls (optional with argument "static" for a static background process)])],
   [enable_timeout_stat=$enableval],
   [enable_timeout_stat="no"])
 if test "$enable_timeout_stat" = "yes"; then
   AC_DEFINE([WITH_TIMEOUT_STAT], [1], [Use timeout on stat calls])
 fi
+if test "$enable_timeout_stat" = "static"; then
+  AC_DEFINE([WITH_TIMEOUT_STAT], [2], [Use timeout on stat calls])
+fi
+AM_CONDITIONAL([WANT_TIMEOUT_STAT], [test "$enable_timeout_stat" = "static"])
 
 # Enable hardened compile and link flags
 AC_ARG_ENABLE([harden_flags],
@@ -112,6 +116,16 @@ AC_CHECK_MEMBERS([struct pt_regs.orig_gpr3,
 AC_CHECK_MEMBERS([struct pt_regs.uregs],[],[], [#include <asm/ptrace.h>])
 AC_CHECK_MEMBERS([struct pt_regs.regs,
                   struct pt_regs.cp0_status],[],[], [#include <asm/ptrace.h>])
+
+case ${target_os} in
+  gnu*)
+    want_fuser=no
+    ;;
+  *)
+    want_fuser=yes
+	;;
+esac
+AM_CONDITIONAL(WANT_FUSER, test $want_fuser = yes)
 
 AM_CONDITIONAL(WANT_PEEKFD_I386,
  test $ac_cv_member_struct_user_regs_struct_orig_eax = yes &&

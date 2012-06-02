@@ -111,9 +111,13 @@ static dev_t device(const char *path);
 #endif
 static char *expandpath(const char *path);
 
-typedef int (*stat_t)(const char*, struct stat*);
 #ifdef WITH_TIMEOUT_STAT
+# if (WITH_TIMEOUT_STAT == 2)
+#  include "timeout.h"
+# else
+typedef int (*stat_t)(const char*, struct stat*);
 static int timeout(stat_t func, const char *path, struct stat *buf, unsigned int seconds);
+# endif
 #else
 #define timeout(func,path,buf,dummy) (func)((path),(buf))
 #endif /* WITH_TIMEOUT_STAT */
@@ -261,7 +265,7 @@ scan_procs(struct names *names_head, struct inode_list *ino_head,
 		if (root_stat) free(root_stat);
 		if (cwd_stat)  free(cwd_stat);
 		if (exe_stat)  free(exe_stat);
-#ifndef __linux__
+#if !defined (__linux__) && !defined (__CYGWIN__)
 		check_dir(pid, "lib", dev_head, ino_head, uid, ACCESS_MMAP,
 			  sockets, netdev);
 		check_dir(pid, "mmap", dev_head, ino_head, uid, ACCESS_MMAP,
@@ -928,7 +932,9 @@ int main(int argc, char *argv[])
 #endif
 
 	netdev = find_net_dev();
+#ifndef __CYGWIN__	/* Cygwin doesn't support /proc/net/unix */
 	fill_unix_cache(&unixsockets);
+#endif
 
     for (argc_cnt = 1; argc_cnt < argc; argc_cnt++) {
       current_argv = argv[argc_cnt];
@@ -1371,7 +1377,7 @@ check_dir(const pid_t pid, const char *dirname, struct device_list *dev_head,
 		st.st_ino = 0;
 		if ((thedev = device(filepath)) < 0)
 #else
-		if (!st.st_ino && timeout(stat, filepath, &st, 5) != 0)
+		if (timeout(stat, filepath, &st, 5) != 0)
 #endif
 		{
             if (errno != ENOENT) {
@@ -1379,6 +1385,9 @@ check_dir(const pid_t pid, const char *dirname, struct device_list *dev_head,
 				    filepath, strerror(errno));
             }
 		} else {
+#ifndef _LISTS_H
+			thedev = st.st_dev;
+#endif
 			if (thedev == netdev) {
 				for (sock_tmp = sockets; sock_tmp != NULL;
 				     sock_tmp = sock_tmp->next) {
@@ -1783,7 +1792,7 @@ scan_swaps(struct names *names_head, struct inode_list *ino_head,
  * Execute stat(2) system call with timeout to avoid deadlock
  * on network based file systems.
  */
-#ifdef HAVE_TIMEOUT_STAT
+#if defined(WITH_TIMEOUT_STAT) && (WITH_TIMEOUT_STAT == 1)
 
 static sigjmp_buf jenv;
 
@@ -1843,7 +1852,7 @@ timeout(stat_t func, const char *path, struct stat *buf, unsigned int seconds)
 err:
 	return -1;
 }
-#endif /* HAVE_TIMEOUT_STAT */
+#endif /* WITH_TIMEOUT_STAT */
 
 #ifdef _LISTS_H
 /*
