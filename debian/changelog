@@ -1,3 +1,9 @@
+psmisc (22.17-2) UNRELEASED; urgency=low
+
+  * Added line in configure.ac for target_os Closes: #673485
+
+ -- Craig Small <csmall@debian.org>  Sun, 10 Jun 2012 17:39:03 +1000
+
 psmisc (22.17-1) unstable; urgency=low
 
   * New upstream release
