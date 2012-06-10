@@ -2,7 +2,7 @@
 DEB_HOST_ARCH_OS ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 
 %:
-	dh $@ --with-autoreconf
+	dh $@ --with autoreconf
 
 override_dh_auto_install:
 	dh_auto_install
