@@ -1,4 +1,4 @@
-psmisc (22.18-1) UNRELEASED; urgency=low
+psmisc (22.18-1) unstable; urgency=low
 
   * New upstream release
    - assert in killall triggered for small lifetimes Closes: #628617
