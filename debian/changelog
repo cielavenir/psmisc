@@ -1,3 +1,11 @@
+psmisc (22.18-1) UNRELEASED; urgency=low
+
+  * New upstream release
+   - assert in killall triggered for small lifetimes Closes: #628617
+   - killall MAX_NAMES off by one Closes: #677428
+
+ -- Craig Small <csmall@debian.org>  Sun, 17 Jun 2012 16:13:55 +1000
+
 psmisc (22.17-2) unstable; urgency=low
 
   * Added line in configure.ac for target_os Closes: #673485
