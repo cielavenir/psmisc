@@ -1,4 +1,4 @@
-psmisc (22.18-2) unstable; urgency=medium
+psmisc (22.19-1) unstable; urgency=medium
 
   * Stop killall killing all Closes: #678357
 
