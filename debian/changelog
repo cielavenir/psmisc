@@ -1,3 +1,9 @@
+psmisc (22.18-2) unstable; urgency=medium
+
+  * Stop killall killing all Closes: #678357
+
+ -- Craig Small <csmall@debian.org>  Fri, 22 Jun 2012 07:11:45 +1000
+
 psmisc (22.18-1) unstable; urgency=low
 
   * New upstream release
