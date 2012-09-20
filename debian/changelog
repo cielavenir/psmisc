@@ -1,3 +1,11 @@
+psmisc (22.20-1) unstable; urgency=low
+
+  * New upstream release
+    - pstree sorts properly on names Closes: #682014
+    - pstree finds pid 0 stops looping Closes: #687829
+
+ -- Craig Small <csmall@debian.org>  Thu, 20 Sep 2012 22:19:44 +1000
+
 psmisc (22.19-1) unstable; urgency=medium
 
   * Stop killall killing all Closes: #678357
