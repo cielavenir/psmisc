@@ -53,6 +53,12 @@ extern const char *__progname;
 
 #define PROC_BASE    "/proc"
 
+#if defined(__FreeBSD_kernel__) || defined(__FreeBSD__)
+#define ROOT_PID 0
+#else
+#define ROOT_PID 1
+#endif /* __FreeBSD__ */
+
 /* UTF-8 defines by Johan Myreen, updated by Ben Winslow */
 #define UTF_V        "\342\224\202"        /* U+2502, Vertical line drawing char */
 #define UTF_VR        "\342\224\234"        /* U+251C, Vertical and right */
@@ -134,6 +140,7 @@ static char last_char = 0;
 static int dumped = 0;                /* used by dump_by_user */
 static int charlen = 0;                /* length of character */
 
+static void fix_orphans(void);
 /*
  * Allocates additional buffer space for width and more as needed.
  * The first call will allocate the first buffer.
@@ -248,8 +255,8 @@ static PROC *find_proc(pid_t pid)
 
     for (walk = list; walk; walk = walk->next)
         if (walk->pid == pid)
-            break;
-    return walk;
+		  return walk;
+	return NULL;
 }
 
 #ifdef WITH_SELINUX
@@ -296,8 +303,8 @@ static void add_child(PROC * parent, PROC * child)
         if (by_pid) {
             if ((*walk)->child->pid > child->pid)
                 break;
-        } else if ((cmp = strcmp((*walk)->child->comm, child->comm)) > 0)
-            break;
+        } else if ((cmp = strcmp((*walk)->child->comm, child->comm)) > 0) {
+            break; }
         else if (!cmp && (*walk)->child->uid > child->uid)
             break;
     new->next = *walk;
@@ -335,6 +342,28 @@ static void set_args(PROC * this, const char *args, int size)
         this->argv[i] = start = strchr(start, 0) + 1;
 }
 
+static void
+rename_proc(PROC *this, const char *comm, uid_t uid)
+{
+    PROC *tmp_child, *parent;
+	CHILD **walk;
+
+    strncpy(this->comm, comm, COMM_LEN+2);
+    this->comm[COMM_LEN+1] = '\0';
+    this->uid = uid;
+
+	/* Re-sort children in parent, now we have a name */
+	if (!by_pid && this->parent) {
+	    parent = this->parent;
+        for (walk = &parent->children; *walk; walk = &(*walk)->next) {
+		  if ( ((*walk)->next != NULL) && strcmp((*walk)->child->comm, (*walk)->next->child->comm) > 0 ) {
+			tmp_child = (*walk)->child;
+			(*walk)->child = (*walk)->next->child;
+			(*walk)->next->child = tmp_child;
+		  }
+		}
+	}
+}
 #ifdef WITH_SELINUX
 static void
 add_proc(const char *comm, pid_t pid, pid_t ppid, pid_t pgid, uid_t uid,
@@ -354,9 +383,7 @@ add_proc(const char *comm, pid_t pid, pid_t ppid, pid_t pgid, uid_t uid,
         this = new_proc(comm, pid, uid);
 #endif                                /*WITH_SELINUX */
     else {
-        strncpy(this->comm, comm, COMM_LEN+2);
-        this->comm[COMM_LEN+1] = '\0';
-        this->uid = uid;
+	    rename_proc(this, comm, uid);
     }
     if (args)
         set_args(this, args, size);
@@ -370,24 +397,12 @@ add_proc(const char *comm, pid_t pid, pid_t ppid, pid_t pgid, uid_t uid,
         parent = new_proc("?", ppid, 0, scontext);
 #else                                /*WITH_SELINUX */
         parent = new_proc("?", ppid, 0);
-#endif                                /*WITH_SELINUX */
-	/* When using kernel 3.3 with hidepid feature enabled on /proc
-	 * then we need fake root pid */
-	if (!isthread && pid != 1) {
-		PROC *root;
-		if (!(root = find_proc(1))) {
-#ifdef WITH_SELINUX
-			root = new_proc("?", 1, 0, scontext);
-#else                                /*WITH_SELINUX */
-			root = new_proc("?", 1, 0);
 #endif
-		}
-		add_child(root, parent);
-		parent->parent = root;
-	}
     }
-    add_child(parent, this);
-    this->parent = parent;
+    if (pid != 0) {
+      add_child(parent, this);
+      this->parent = parent;
+    }
 }
 
 
@@ -634,7 +649,7 @@ static void read_proc(void)
   char *buffer;
   size_t buffer_size;
   char readbuf[BUFSIZ + 1];
-  char *tmpptr;
+  char *tmpptr, *endptr;
   pid_t pid, ppid, pgid;
   int fd, size;
   int empty;
@@ -659,8 +674,9 @@ static void read_proc(void)
     exit(1);
   }
   empty = 1;
-  while ((de = readdir(dir)) != NULL)
-    if ((pid = (pid_t) atoi(de->d_name)) != 0) {
+  while ((de = readdir(dir)) != NULL) {
+    pid = (pid_t) strtol(de->d_name, &endptr, 10);
+    if (endptr != de->d_name && endptr[0] == '\0') {
       if (! (path = malloc(strlen(PROC_BASE) + strlen(de->d_name) + 10)))
         exit(2);
       sprintf(path, "%s/%d/stat", PROC_BASE, pid);
@@ -769,7 +785,9 @@ static void read_proc(void)
       }
       free(path);
     }
+  }
   (void) closedir(dir);
+  fix_orphans();
   if (print_args)
     free(buffer);
   if (empty) {
@@ -778,34 +796,32 @@ static void read_proc(void)
   }
 }
 
-
-#if 0
-
-/* Could use output of  ps achlx | awk '{ print $3,$4,$2,$13 }'  */
-
-static void read_stdin(void)
+static void fix_orphans(void)
 {
-    char comm[PATH_MAX + 1];
-    char *cmd;
-    int pid, ppid, uid;
+  /* When using kernel 3.3 with hidepid feature enabled on /proc
+   * then we need fake root pid and gather all the orphan processes
+   * that is, processes with no known parent
+   * As we cannot be sure if it is just the root pid or others missing
+   * we gather the lot
+   */
+  PROC *root, *walk;
 
-    while (scanf("%d %d %d %s\n", &pid, &ppid, &uid, comm) == 4) {
-        if (cmd = strrchr(comm, '/'))
-            cmd++;
-        else
-            cmd = comm;
-        if (*cmd == '-')
-            cmd++;
+  if (!(root = find_proc(ROOT_PID))) {
 #ifdef WITH_SELINUX
-        add_proc(cmd, pid, ppid, uid, NULL, 0, NULL);
+    root = new_proc("?", ROOT_PID, 0, scontext);
 #else                                /*WITH_SELINUX */
-        add_proc(cmd, pid, ppid, uid, NULL, 0);
-#endif                                /*WITH_SELINUX */
-    }
-}
-
+    root = new_proc("?", ROOT_PID, 0);
 #endif
-
+  }
+  for (walk = list; walk; walk = walk->next) {
+	if (walk->pid == 1 || walk->pid == 0)
+	  continue;
+	if (walk->parent == NULL) { 
+	  add_child(root, walk);
+      walk->parent = root;
+	}
+  }
+}
 
 static void usage(void)
 {
@@ -859,8 +875,8 @@ int main(int argc, char **argv)
     const struct passwd *pw;
     pid_t pid, highlight;
     char termcap_area[1024];
-    char *termname;
-    int c;
+    char *termname, *endptr;
+    int c, pid_set;
 
     struct option options[] = {
         {"arguments", 0, NULL, 'a'},
@@ -886,7 +902,7 @@ int main(int argc, char **argv)
     if (ioctl(1, TIOCGWINSZ, &winsz) >= 0)
         if (winsz.ws_col)
             output_width = winsz.ws_col;
-    pid = 1;
+    pid = ROOT_PID;
     highlight = 0;
     pw = NULL;
 
@@ -1006,7 +1022,9 @@ int main(int argc, char **argv)
         }
     if (optind == argc - 1) {
         if (isdigit(*argv[optind])) {
-            if (!(pid = (pid_t) atoi(argv[optind++])))
+            pid = (pid_t) strtol(argv[optind++], &endptr, 10);
+            pid_set = 1;
+            if (endptr[0] != '\0')
                 usage();
         } else if (!(pw = getpwnam(argv[optind++]))) {
             fprintf(stderr, _("No such user name: %s\n"),
@@ -1021,16 +1039,16 @@ int main(int argc, char **argv)
          current = current->parent)
         current->flags |= PFLAG_HILIGHT;
 
-    if(show_parents && pid != 0) {
+    if(show_parents && pid_set == 1) {
       trim_tree_by_parent(find_proc(pid));
 
-      pid = 1;
+      pid = ROOT_PID;
     }
 
     if (!pw)
         dump_tree(find_proc(pid), 0, 1, 1, 1, 0, 0);
     else {
-        dump_by_user(find_proc(1), pw->pw_uid);
+        dump_by_user(find_proc(ROOT_PID), pw->pw_uid);
         if (!dumped) {
             fprintf(stderr, _("No processes found.\n"));
             return 1;

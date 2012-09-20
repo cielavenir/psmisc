@@ -1,20 +1,23 @@
-# Czech translation of psmisc.
-# Copyright (C) 2009 Free Software Foundation, Inc.
+# Translation of psmisc to Croatian.
+# Copyright (C) 2012 Free Software Foundation, Inc.
 # This file is distributed under the same license as the psmisc package.
-# Petr Pisar <petr.pisar@atlas.cz>, 2009, 2010, 2012.
 #
+# Tomislav Krznar <tomislav.krznar@gmail.com>, 2012.
 msgid ""
 msgstr ""
-"Project-Id-Version: psmisc 22.20rc1\n"
+"Project-Id-Version: psmisc 22.17rc1\n"
 "Report-Msgid-Bugs-To: csmall@small.dropbear.id.au\n"
 "POT-Creation-Date: 2012-09-20 22:13+1000\n"
-"PO-Revision-Date: 2012-09-03 08:33+0200\n"
-"Last-Translator: Petr Pisar <petr.pisar@atlas.cz>\n"
-"Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
-"Language: cs\n"
+"PO-Revision-Date: 2012-08-28 11:11+0200\n"
+"Last-Translator: Tomislav Krznar <tomislav.krznar@gmail.com>\n"
+"Language-Team: Croatian <lokalizacija@linux.hr>\n"
+"Language: hr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8-bit\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 1.4\n"
 
 #: src/fuser.c:133
 #, c-format
@@ -40,31 +43,6 @@ msgid ""
 "  -w,--writeonly        kill only processes with write access\n"
 "  -V,--version          display version information\n"
 msgstr ""
-"Použití: fuser [-fMuvw] [-a|-s] [-4|-6] [-c|-m|-n PROSTOR] [-k [-i] [-"
-"SIGNÁL]]\n"
-"               NÁZEV…\n"
-"         fuser -l\n"
-"         fuser -V\n"
-"Ukáže, které procesy používají vyjmenované soubory, sockety nebo souborové\n"
-"systémy.\n"
-"\n"
-"  -a,--all              zobrazí rovněž nepoužité soubory\n"
-"  -i,--interactive      před zabitím se dotáže (ignorováno bez -k)\n"
-"  -k,--kill             zabije procesy přistupující k zadanému souboru\n"
-"  -l,--list-signals     vypíše seznam názvů dostupných signálů\n"
-"  -m,--mount            zobrazí všechny procesy používající zadané "
-"souborové\n"
-"                        systémy nebo bloková zařízení\n"
-"  -M,--ismountpoint     vyhoví požadavku, pouze když NÁZEV je bod připojení "
-"FS\n"
-"  -n,--namespace PROSTOR    hledá v tomto jmenném prostoru\n"
-"                        (file [soubor], udp, nebo tcp)\n"
-"  -s,--silent           tichý běh\n"
-"  -SIGNÁL               namísto SIGKILL pošle tento signál\n"
-"  -u,--user             zobrazí ID uživatelů\n"
-"  -v,--verbose          podrobný výstup\n"
-"  -w,--writeonly        zabije jen procesy přistupující kvůli zápisu\n"
-"  -V,--version          zobrazí informace o verzi\n"
 
 #: src/fuser.c:150
 #, c-format
@@ -72,8 +50,6 @@ msgid ""
 "  -4,--ipv4             search IPv4 sockets only\n"
 "  -6,--ipv6             search IPv6 sockets only\n"
 msgstr ""
-"  -4,--ipv4             hledá pouze mezi IPv4 sockety\n"
-"  -6,--ipv6             hledá pouze mezi IPv6 sockety\n"
 
 #: src/fuser.c:153
 #, c-format
@@ -83,15 +59,11 @@ msgid ""
 "  udp/tcp names: [local_port][,[rmt_host][,[rmt_port]]]\n"
 "\n"
 msgstr ""
-"  -                     konec přepínačů\n"
-"\n"
-"  Názvy UDP/TCP: [místní_port][,[vzdálený_stroj][,[vzdálený_port]]]\n"
-"\n"
 
 #: src/fuser.c:160
 #, c-format
 msgid "fuser (PSmisc) %s\n"
-msgstr "fuser (PSmisc) %s\n"
+msgstr ""
 
 #: src/fuser.c:163
 #, c-format
@@ -99,7 +71,7 @@ msgid ""
 "Copyright (C) 1993-2010 Werner Almesberger and Craig Small\n"
 "\n"
 msgstr ""
-"Copyright © 1993–2010 Werner Almesberger a Craig Small\n"
+"Copyright (C) 1993-2010 Werner Almesberger i Craig Small\n"
 "\n"
 
 #: src/fuser.c:165 src/killall.c:653 src/peekfd.c:108 src/prtstat.c:68
@@ -111,160 +83,155 @@ msgid ""
 "the terms of the GNU General Public License.\n"
 "For more information about these matters, see the files named COPYING.\n"
 msgstr ""
-"PSmisc je dodáván BEZ ABSOLUTNĚ ŽÁDNÉ ZÁRUKY.\n"
-"Toto je svobodné programové vybavení, můžete jej šířit podle podmínek\n"
-"GNU Obecné veřejné licence (GPL).\n"
-"Podrobnosti v této záležitosti naleznete v souborech pojmenovaných COPYING.\n"
 
 #: src/fuser.c:184
 #, c-format
 msgid "Cannot open /proc directory: %s\n"
-msgstr "Adresář /proc nelze otevřít: %s\n"
+msgstr "Ne mogu otvoriti direktorij /proc: %s\n"
 
 #: src/fuser.c:397 src/fuser.c:450 src/fuser.c:1923
 #, c-format
 msgid "Cannot allocate memory for matched proc: %s\n"
-msgstr "Paměť pro odpovídající proc nelze alokovat: %s\n"
+msgstr ""
 
 #: src/fuser.c:478
 #, c-format
 msgid "Specified filename %s does not exist.\n"
-msgstr "Soubor zadaného názvu %s neexistuje.\n"
+msgstr "Navedena datoteka %s ne postoji.\n"
 
 #: src/fuser.c:481
 #, c-format
 msgid "Cannot stat %s: %s\n"
-msgstr "Nelze získat informace (stat(2)) o %s: %s\n"
+msgstr "Ne mogu izvršiti stat %s: %s\n"
 
 #: src/fuser.c:618
 #, c-format
 msgid "Cannot resolve local port %s: %s\n"
-msgstr "Místní port %s nelze přeložit: %s\n"
+msgstr "Ne mogu odrediti lokalni port %s: %s\n"
 
 #: src/fuser.c:636
 #, c-format
 msgid "Unknown local port AF %d\n"
-msgstr "Neznámá rodina adres %d místního portu\n"
+msgstr "Nepoznati lokalni port AF %d\n"
 
 #: src/fuser.c:724
 #, c-format
 msgid "Cannot open protocol file \"%s\": %s\n"
-msgstr "Soubor s protokoly „%s“ nelze otevřít: %s\n"
+msgstr ""
 
 #: src/fuser.c:972
 #, c-format
 msgid "%s: Invalid option %s\n"
-msgstr "%s: Neplatný přepínač %s\n"
+msgstr "%s: Neispravna opcija %s\n"
 
 #: src/fuser.c:1023
 msgid "Namespace option requires an argument."
-msgstr "Přepínač jmenného prostoru vyžaduje argument."
+msgstr ""
 
 #: src/fuser.c:1041
 msgid "Invalid namespace name"
-msgstr "Neplatný název jmenného prostoru"
+msgstr ""
 
 #: src/fuser.c:1102
 msgid "You can only use files with mountpoint options"
-msgstr "Spolu s přepínači bodů připojení lze použít jen soubory"
+msgstr ""
 
 #: src/fuser.c:1156
 msgid "No process specification given"
-msgstr "Žádné kritérium procesu nebylo zadáno"
+msgstr ""
 
 #: src/fuser.c:1163
 msgid "all option cannot be used with silent option."
-msgstr "Přepínač -a nelze použít spolu s přepínačem -s."
+msgstr ""
 
 #: src/fuser.c:1168
 msgid "You cannot search for only IPv4 and only IPv6 sockets at the same time"
-msgstr "Nelze současně hledat jen v IPv4 a jen v IPv6 socketech."
+msgstr ""
 
 #: src/fuser.c:1246
 #, c-format
 msgid "%*s USER        PID ACCESS COMMAND\n"
-msgstr "%*s UŽIVATEL    PID PŘÍSTUP PŘÍKAZ\n"
+msgstr ""
 
 #: src/fuser.c:1279 src/fuser.c:1336
 msgid "(unknown)"
-msgstr "(neznámo)"
+msgstr "(nepoznato)"
 
 #: src/fuser.c:1415 src/fuser.c:1454
 #, c-format
 msgid "Cannot stat file %s: %s\n"
-msgstr "O souboru %s nelze získat informace: %s\n"
+msgstr "Ne mogu izvršiti stat na datoteci %s: %s\n"
 
 #: src/fuser.c:1540
 #, c-format
 msgid "Cannot open /proc/net/unix: %s\n"
-msgstr "/proc/net/unix nelze otevřít: %s\n"
+msgstr "Ne mogu otvoriti /proc/net/unix: %s\n"
 
 #: src/fuser.c:1616
 #, c-format
 msgid "Kill process %d ? (y/N) "
-msgstr "Zabít proces %d? (a/N) "
+msgstr ""
 
 #: src/fuser.c:1652
 #, c-format
 msgid "Could not kill process %d: %s\n"
-msgstr "Proces %d nebylo možné zabít: %s\n"
+msgstr ""
 
 #: src/fuser.c:1667
 #, c-format
 msgid "Cannot open a network socket.\n"
-msgstr "Síťový socket nelze otevřít.\n"
+msgstr "Ne mogu otvoriti mrežnu utičnicu.\n"
 
 #: src/fuser.c:1671
 #, c-format
 msgid "Cannot find socket's device number.\n"
-msgstr "Nelze nalézt číslo zařízení socketu.\n"
+msgstr "Ne mogu pronaći broj uređaja utičnice.\n"
 
 #: src/killall.c:100
 #, c-format
 msgid "Kill %s(%s%d) ? (y/N) "
-msgstr "Zabít %s(%s%d)? (a/N) "
+msgstr ""
 
 #: src/killall.c:103
 #, c-format
 msgid "Signal %s(%s%d) ? (y/N) "
-msgstr "Zaslat signál %s(%s%d) ? (a/N) "
+msgstr ""
 
 #: src/killall.c:211
-#, c-format
+#, fuzzy, c-format
 msgid "killall: Cannot get UID from process status\n"
-msgstr "killall: Z procesového souboru „status“ nelze získat UID\n"
+msgstr "Ne mogu dohvatiti UID iz stanja procesa\n"
 
 #: src/killall.c:237
-#, c-format
+#, fuzzy, c-format
 msgid "killall: Bad regular expression: %s\n"
-msgstr "killall: Chybný regulární výraz: %s\n"
+msgstr "Neispravan regularni izraz: %s\n"
 
 #: src/killall.c:447
-#, c-format
+#, fuzzy, c-format
 msgid "killall: skipping partial match %s(%d)\n"
-msgstr "killall: částečná shoda %s(%d) se vynechá\n"
+msgstr "preskačem djelomično podudaranje %s(%d)\n"
 
 #: src/killall.c:562
 #, c-format
 msgid "Killed %s(%s%d) with signal %d\n"
-msgstr "%s(%s%d) zabit signálem %d\n"
+msgstr ""
 
 #: src/killall.c:576
 #, c-format
 msgid "%s: no process found\n"
-msgstr "%s: žádný proces nenalezen\n"
+msgstr "%s: proces nije pronađen\n"
 
 #: src/killall.c:615
 #, c-format
 msgid ""
 "Usage: killall [-Z CONTEXT] [-u USER] [ -eIgiqrvw ] [ -SIGNAL ] NAME...\n"
 msgstr ""
-"Usage: killall [-Z KONTEXT] [-u UŽIVATEL] [-eIgiqrvw] [-SIGNÁL] NÁZEV…\n"
 
 #: src/killall.c:618
 #, c-format
 msgid "Usage: killall [OPTION]... [--] NAME...\n"
-msgstr "Použití: killall [PŘEPÍNAČ…] [--] NÁZEV…\n"
+msgstr ""
 
 #: src/killall.c:621
 #, c-format
@@ -287,24 +254,6 @@ msgid ""
 "  -V,--version        display version information\n"
 "  -w,--wait           wait for processes to die\n"
 msgstr ""
-"         killall -l, --list\n"
-"         killall -V, --version\n"
-"\n"
-"  -e,--exact          u velmi dlouhých názvu vyžaduje přesnou shodu\n"
-"  -I,--ignore-case    porovnávání názvů procesů nebere ohled na velikost "
-"písmen\n"
-"  -g,--process-group  zabije skupinu procesů namísto procesu\n"
-"  -y,--younger-than   zabije procesy mladší než ČAS\n"
-"  -o,--older-than     zabije procesy starší než ČAS\n"
-"  -i,--interactive    před zabitím se zeptá\n"
-"  -l,--list           vypíše názvy všech známých signálů\n"
-"  -q,--quiet          nevypisuje stížnosti\n"
-"  -r,--regexp         s NÁZVEM zachází jako s rozšířeným regulárním výrazem\n"
-"  -s,--signal SIGNÁL  odešle tento signál namísto SIGTERM\n"
-"  -u,--user UŽIVATEL  zabije pouze proces(y) bežící jako UŽIVATEL\n"
-"  -v,--verbose        ohlásí úspěšně odeslaný signál\n"
-"  -V,--version        zobrazí informace o verzi\n"
-"  -w,--wait           čeká, dokud proces nezemře\n"
 
 #: src/killall.c:639
 #, c-format
@@ -312,46 +261,44 @@ msgid ""
 "  -Z,--context REGEXP kill only process(es) having context\n"
 "                      (must precede other arguments)\n"
 msgstr ""
-"  -Z,--context REGVÝR zabije jen proces(y) mající kontext\n"
-"                      (musí předcházet ostatním argumentům)\n"
 
 #: src/killall.c:651
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "Copyright (C) 1993-2012 Werner Almesberger and Craig Small\n"
 "\n"
 msgstr ""
-"Copyright © 1993–2012 Werner Almesberger a Craig Small\n"
+"Copyright (C) 1993-2010 Werner Almesberger i Craig Small\n"
 "\n"
 
 #: src/killall.c:741 src/killall.c:747
 msgid "Invalid time format"
-msgstr "Neplatný formát času"
+msgstr "Neispravan vremenski oblik"
 
 #: src/killall.c:767
 #, c-format
 msgid "Cannot find user %s\n"
-msgstr "Uživatele %s nelze nalézt\n"
+msgstr "Ne mogu pronaći korisnika %s\n"
 
 #: src/killall.c:798
 #, c-format
 msgid "Bad regular expression: %s\n"
-msgstr "Chybný regulární výraz: %s\n"
+msgstr "Neispravan regularni izraz: %s\n"
 
 #: src/killall.c:830
-#, c-format
+#, fuzzy, c-format
 msgid "killall: Maximum number of names is %d\n"
-msgstr "killall: Maximální počet názvů je %d\n"
+msgstr "Najveći broj imena je %d\n"
 
 #: src/killall.c:835
-#, c-format
+#, fuzzy, c-format
 msgid "killall: %s lacks process entries (not mounted ?)\n"
-msgstr "killall: %s postrádá záznamy procesů (není připojen?)\n"
+msgstr "%s je prazan (nije montiran?)\n"
 
 #: src/peekfd.c:96
 #, c-format
 msgid "Error attaching to pid %i\n"
-msgstr "Chyba při připojování se na PID %i\n"
+msgstr "Greška pridruživanja pid-u %i\n"
 
 #: src/peekfd.c:104
 #, c-format
@@ -364,7 +311,7 @@ msgid ""
 "Copyright (C) 2007 Trent Waddington\n"
 "\n"
 msgstr ""
-"Copyright © 2007 Trent Waddington\n"
+"Copyright (C) 2007 Trent Waddington\n"
 "\n"
 
 #: src/peekfd.c:116
@@ -380,15 +327,6 @@ msgid ""
 "\n"
 "  Press CTRL-C to end output.\n"
 msgstr ""
-"Použití: peekfd [-8] [-n] [-c] [-d] [-V] [-h] PID [FD…]\n"
-"      -8 na výstupu neodstraňuje z datových proudů osmý bit.\n"
-"      -n nezobrazuje čtení/zápis z hlaviček FD.\n"
-"      -c špehuje též nové potomky.\n"
-"      -d odstraňuje duplicitní čtení/zápisy z výstupu.\n"
-"      -V vypíše informaci o verzi.\n"
-"      -h vypíše tuto nápovědu.\n"
-"\n"
-"  Výstup ukončíte stiskem Ctrl-C.\n"
 
 #: src/prtstat.c:54
 #, c-format
@@ -399,11 +337,6 @@ msgid ""
 "    -r,--raw       Raw display of information\n"
 "    -V,--version   Display version information and exit\n"
 msgstr ""
-"Použití: prtstat [PŘEPÍNAČE] PID…\n"
-"         prtstat -V\n"
-"Zobrazí informace o procesu\n"
-"    -r,--raw       Neopracovaný výstup\n"
-"    -V,--version   Zobrazí informace o verzi a skončí\n"
 
 #: src/prtstat.c:65
 #, c-format
@@ -416,37 +349,36 @@ msgid ""
 "Copyright (C) 2009 Craig Small\n"
 "\n"
 msgstr ""
-"Copyright © 2009 Craig Small\n"
+"Copyright (C) 2009 Craig Small\n"
 "\n"
 
 #: src/prtstat.c:78
 msgid "running"
-msgstr "běží"
+msgstr "pokrenut"
 
 #: src/prtstat.c:80
 msgid "sleeping"
-msgstr "spí"
+msgstr ""
 
 #: src/prtstat.c:82
 msgid "disk sleep"
-msgstr "čeká na disk"
+msgstr ""
 
 #: src/prtstat.c:84
 msgid "zombie"
-msgstr "zombie"
+msgstr "zombi"
 
 #: src/prtstat.c:86
 msgid "traced"
-msgstr "trasován"
+msgstr "praćen"
 
 #: src/prtstat.c:88
 msgid "paging"
-msgstr "odstránkován"
+msgstr "straničenje"
 
-# `uknown' state
 #: src/prtstat.c:90
 msgid "unknown"
-msgstr "neznámý"
+msgstr "nepoznato"
 
 #: src/prtstat.c:164
 #, c-format
@@ -454,8 +386,6 @@ msgid ""
 "Process: %-14s\t\tState: %c (%s)\n"
 "  CPU#:  %-3d\t\tTTY: %s\tThreads: %ld\n"
 msgstr ""
-"Proces: %-14s\t\tStav: %c (%s)\n"
-"  CPU č.:  %-3d\t\tTTY: %s\tVláken: %ld\n"
 
 #: src/prtstat.c:169
 #, c-format
@@ -466,11 +396,6 @@ msgid ""
 "  T Group ID: %d\n"
 "\n"
 msgstr ""
-"ID procesu, skupiny a relace\n"
-"      ID procesu: %d\t\t ID rodiče: %d\n"
-"      ID skupiny: %d\t\t ID relace: %d\n"
-"  ID skupiny vl.: %d\n"
-"\n"
 
 #: src/prtstat.c:175
 #, c-format
@@ -479,9 +404,6 @@ msgid ""
 "  This Process    (minor major): %8lu  %8lu\n"
 "  Child Processes (minor major): %8lu  %8lu\n"
 msgstr ""
-"Výpadky stránek\n"
-"  Tento proces    (menší větší): %8lu  %8lu\n"
-"  Procesy potomků (menší větší): %8lu  %8lu\n"
 
 #: src/prtstat.c:180
 #, c-format
@@ -490,9 +412,6 @@ msgid ""
 "  This Process    (user system guest blkio): %6.2f %6.2f %6.2f %6.2f\n"
 "  Child processes (user system guest):       %6.2f %6.2f %6.2f\n"
 msgstr ""
-"Časy CPU\n"
-"  Tento proces    (uživ systém host blokI/O): %6.2f %6.2f %6.2f %6.2f\n"
-"  Procesy potomků (uživ systém host):         %6.2f %6.2f %6.2f\n"
 
 #: src/prtstat.c:189
 #, c-format
@@ -504,12 +423,6 @@ msgid ""
 "  Stack Start: %#-10lx\n"
 "  Stack Pointer (ESP): %#10lx\t Inst Pointer (EIP): %#10lx\n"
 msgstr ""
-"Paměť\n"
-"  Vvelikost:   %-10s\n"
-"  RSS:         %-10s \t\t Omezení RSS: %s\n"
-"  Začátek kódu:      %#-10lx\t\t Konec kódu:  %#-10lx\n"
-"  Začátek zásobníku: %#-10lx\n"
-"  Ukazatel na zásobník (ESP): %#10lx  Ukazatel na kód (EIP): %#10lx\n"
 
 #: src/prtstat.c:199
 #, c-format
@@ -518,41 +431,38 @@ msgid ""
 "  Policy: %s\n"
 "  Nice:   %ld \t\t RT Priority: %ld %s\n"
 msgstr ""
-"Plánování\n"
-"  Politika %s\n"
-"  Nice:   %ld \t\t Priorita reálného času: %ld %s\n"
 
 #: src/prtstat.c:221
 msgid "asprintf in print_stat failed.\n"
-msgstr "asprintf v print_stat selhala.\n"
+msgstr ""
 
 #: src/prtstat.c:226
 #, c-format
 msgid "Process with pid %d does not exist.\n"
-msgstr "Proces s PID %d neexistuje.\n"
+msgstr "Proces s pid-om %d ne postoji.\n"
 
 #: src/prtstat.c:228
 #, c-format
 msgid "Unable to open stat file for pid %d (%s)\n"
-msgstr "Soubor se statistikou PID %d nelze otevřít (%s)\n"
+msgstr ""
 
 #: src/prtstat.c:308
 msgid "Invalid option"
-msgstr "Neplatný přepínač"
+msgstr "Neispravna opcija"
 
 #: src/prtstat.c:313
 msgid "You must provide at least one PID."
-msgstr "Je třeba zadat alespoň jedno PID."
+msgstr "Morate navesti barem jedan PID."
 
 #: src/prtstat.c:317
 #, c-format
 msgid "/proc is not mounted, cannot stat /proc/self/stat.\n"
-msgstr "/proc není připojen, nelze získat informace o /proc/self/stat.\n"
+msgstr "/proc nije montiran, ne mogu izvršiti stat /proc/self/stat.\n"
 
 #: src/pstree.c:794
 #, c-format
 msgid "%s is empty (not mounted ?)\n"
-msgstr "%s je prázdný (není připojen?)\n"
+msgstr "%s je prazan (nije montiran?)\n"
 
 #: src/pstree.c:830
 #, c-format
@@ -579,31 +489,11 @@ msgid ""
 "  -U, --unicode       use UTF-8 (Unicode) line drawing characters\n"
 "  -V, --version       display version information\n"
 msgstr ""
-"Použití: pstree [-a] [-c] [-h|-H PID] [-l] [-n] [-p] [-g] [-u]\n"
-"                [-A|-G|-U] [PID|USER]\n"
-"         pstree -V\n"
-"Zobrazí strom procesů.\n"
-"\n"
-"  -a, --arguments      zobrazí argumenty příkazového řádku\n"
-"  -A, --ascii          použije znaky ASCII pro kreslení čar\n"
-"  -c, --compact        neslučuje identické podstromy\n"
-"  -h, --highlight-all  zvýrazní současný proces a jeho předchůdce\n"
-"  -H PID,\n"
-"  --highlight-pid=PID  zvýrazní tento proces a jeho předchůdce\n"
-"  -g, --show-pgids     zobrazí ID skupin procesů; implikuje -c\n"
-"  -G, --vt100          použije znaky VT100 pro kreslení čar\n"
-"  -l, --long           nezkracuje dlouhé řádky\n"
-"  -n, --numeric-sort   seřadí výstup podle PID\n"
-"  -p, --show-pids      zobrazí PID; implikuje -c\n"
-"  -s, --show-parents   zobrazí rodiče vybraného procesu\n"
-"  -u, --uid-changes    zobrazí přechody UID\n"
-"  -U, --unicode        použije znaky UTF-8 (Unicode) pro kreslení čar\n"
-"  -V, --version        zobrazí informace o verzi\n"
 
 #: src/pstree.c:850
 #, c-format
 msgid "  -Z     show         SELinux security contexts\n"
-msgstr "  -Z                   zobrazí bezpečnostní kontext SELinuxu\n"
+msgstr ""
 
 #: src/pstree.c:852
 #, c-format
@@ -612,9 +502,6 @@ msgid ""
 "  USER   show only trees rooted at processes of this user\n"
 "\n"
 msgstr ""
-"  PID       začne na tomto PID; implicitní je 1 (init)\n"
-"  UŽIVATEL  zobrazí jen stromy, jejichž kořeny náleží tomuto uživateli\n"
-"\n"
 
 #: src/pstree.c:859
 #, c-format
@@ -627,64 +514,42 @@ msgid ""
 "Copyright (C) 1993-2009 Werner Almesberger and Craig Small\n"
 "\n"
 msgstr ""
-"Copyright © 1993–2009 Werner Almesberger a Craig Small\n"
+"Copyright (C) 1993-2009 Werner Almesberger i Craig Small\n"
 "\n"
 
 #: src/pstree.c:975
 #, c-format
 msgid "TERM is not set\n"
-msgstr "Proměnná TERM není nastavena\n"
+msgstr "TERM nije postavljen\n"
 
 #: src/pstree.c:979
 #, c-format
 msgid "Can't get terminal capabilities\n"
-msgstr "Nelze zjistit schopnosti terminálu\n"
+msgstr "Ne mogu dohvatiti mogućnosti terminala\n"
 
 #: src/pstree.c:1030
 #, c-format
 msgid "No such user name: %s\n"
-msgstr "Žádný uživatel se jménem: %s\n"
+msgstr "Nema takvog korisnika: %s\n"
 
 #: src/pstree.c:1053
 #, c-format
 msgid "No processes found.\n"
-msgstr "Žádný proces nenalezen.\n"
+msgstr "Nisu pronađeni procesi.\n"
 
 #: src/pstree.c:1059
 #, c-format
 msgid "Press return to close\n"
-msgstr "Uzavřete klávesou Enter\n"
+msgstr "Pritisnite return za zatvaranje\n"
 
 #: src/signals.c:84
 #, c-format
 msgid "%s: unknown signal; %s -l lists signals.\n"
-msgstr "%s: neznámý signál, %s -l vypíše signály.\n"
-
-#~ msgid ""
-#~ "Usage: pidof [ -eg ] NAME...\n"
-#~ "       pidof -V\n"
-#~ "\n"
-#~ "    -e      require exact match for very long names;\n"
-#~ "            skip if the command line is unavailable\n"
-#~ "    -g      show process group ID instead of process ID\n"
-#~ "    -V      display version information\n"
-#~ "\n"
-#~ msgstr ""
-#~ "Použití: pidof [-eg] NÁZEV…\n"
-#~ "         pidof -V\n"
-#~ "\n"
-#~ "    -e      u velmi dlouhých názvů vyžaduje přesnou shodu;\n"
-#~ "            vynechá, pokud příkazový řádek není dostupný\n"
-#~ "    -g      zobrazí ID skupiny procesů namísto ID procesu\n"
-#~ "    -V      zobrazí informace o verzi\n"
-#~ "\n"
+msgstr "%s: nepoznat signal; %s -l ispisuje signale.\n"
 
 #~ msgid ""
 #~ "Copyright (C) 1993-2005 Werner Almesberger and Craig Small\n"
 #~ "\n"
 #~ msgstr ""
-#~ "Copyright © 1993–2005 Werner Almesberger a Craig Small\n"
+#~ "Copyright (C) 1993-2005 Werner Almesberger i Craig Small\n"
 #~ "\n"
-
-#~ msgid "You cannot use the mounted and mountpoint flags together"
-#~ msgstr "Příznaky připojený a bod připojení nelze použít současně"
