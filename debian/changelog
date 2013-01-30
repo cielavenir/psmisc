@@ -1,3 +1,9 @@
+psmisc (22.19-2) unstable; urgency=low
+
+  * Backport kFreeBSD pstree patch Closes: #687829
+
+ -- Craig Small <csmall@debian.org>  Wed, 30 Jan 2013 13:00:23 +1100
+
 psmisc (22.19-1) unstable; urgency=medium
 
   * Stop killall killing all Closes: #678357
