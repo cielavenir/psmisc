@@ -1,4 +1,4 @@
-psmisc (22.19-2) unstable; urgency=low
+psmisc (22.19-1+deb7u1) testing-proposed-updates; urgency=low
 
   * Backport kFreeBSD pstree patch Closes: #687829
 
