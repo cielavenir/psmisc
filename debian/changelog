@@ -1,3 +1,13 @@
+psmisc (22.21-1) unstable; urgency=medium
+
+  * New upstream release
+    - Missing comma in fuser(1) added Closes: #702391
+    - pstree uses COLUMN env variable Closes: #717017
+    - fuser -m and -M flags work either way Closes: #606178
+  * Added Multi-Arch: foreign to control Closes: #698948
+
+ -- Craig Small <csmall@debian.org>  Sun, 16 Feb 2014 18:19:33 +1100
+
 psmisc (22.20-1) unstable; urgency=low
 
   * New upstream release
