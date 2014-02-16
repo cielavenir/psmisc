@@ -1,0 +1,7 @@
+Makefile.in
+aclocal.m4
+configure
+doc/Makefile.in
+icons/Makefile.in
+src/Makefile.in
+testsuite/Makefile.in
