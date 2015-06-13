@@ -1,7 +1,12 @@
+psmisc (22.21-3) UNRELEASED; urgency=medium
+
+  * Enable SELinux support on linux architectures (Closes: #751991)
+
+ -- Laurent Bigonville <bigon@debian.org>  Fri, 17 Apr 2015 18:17:02 +0200
+
 psmisc (22.21-2) unstable; urgency=medium
 
   * Fixed fuser -M typo Closes: #740275 thanks Brad
-
 
  -- Craig Small <csmall@debian.org>  Fri, 28 Feb 2014 21:57:20 +1100
 
