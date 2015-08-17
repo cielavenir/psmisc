@@ -1,8 +1,9 @@
-psmisc (22.21-3) UNRELEASED; urgency=medium
+psmisc (22.21-2.1) unstable; urgency=medium
 
+  * Non-maintainer upload.
   * Enable SELinux support on linux architectures (Closes: #751991)
 
- -- Laurent Bigonville <bigon@debian.org>  Fri, 17 Apr 2015 18:17:02 +0200
+ -- Laurent Bigonville <bigon@debian.org>  Mon, 17 Aug 2015 15:18:05 +0200
 
 psmisc (22.21-2) unstable; urgency=medium
 
