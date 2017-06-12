@@ -1,4 +1,4 @@
-psmisc (23.0-1) UNRELEASED; urgency=medium
+psmisc (23.0-1) unstable; urgency=medium
 
   * New upstream release
   * New program: pslog to see what logs are option
@@ -8,7 +8,7 @@ psmisc (23.0-1) UNRELEASED; urgency=medium
   * killall: comm parser more robust
   * killall: only kill processes in same namespace by default
 
- -- Craig Small <csmall@debian.org>  Mon, 12 Jun 2017 11:01:48 +1000
+ -- Craig Small <csmall@debian.org>  Mon, 12 Jun 2017 11:46:48 +1000
 
 psmisc (22.21-2.1) unstable; urgency=medium
 
