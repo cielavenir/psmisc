@@ -1,3 +1,15 @@
+psmisc (23.0-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+  * New program: pslog to see what logs are option
+  * pstree: Removed need for PATH_MAX Closes: #750405
+  * killall: Fix process age race condition Closes: #822861
+  * prtstat: Remove duplicate options in man page Closes: #846387
+  * killall: comm parser more robust
+  * killall: only kill processes in same namespace by default
+
+ -- Craig Small <csmall@debian.org>  Mon, 12 Jun 2017 11:01:48 +1000
+
 psmisc (22.21-2.1) unstable; urgency=medium
 
   * Non-maintainer upload.
