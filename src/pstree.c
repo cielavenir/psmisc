@@ -2,7 +2,7 @@
  * pstree.c - display process tree
  *
  * Copyright (C) 1993-2002 Werner Almesberger
- * Copyright (C) 2002-2014 Craig Small
+ * Copyright (C) 2002-2017 Craig Small
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <limits.h>
 
 #include "i18n.h"
 #include "comm.h"
@@ -76,7 +77,28 @@ extern const char *__progname;
 #define VT_UR        "m"
 #define        VT_HD        "w"
 
-#define NUM_NS 6
+#define THREAD_FORMAT        "{%.*s}"        /* Format for thread names */
+
+enum ns_type {
+    CGROUPNS = 0,
+    IPCNS,
+    MNTNS,
+    NETNS,
+    PIDNS,
+    USERNS,
+    UTSNS,
+    NUM_NS
+};
+
+static const char *ns_names[] = {
+    [CGROUPNS] = "cgroup",
+    [IPCNS] = "ipc",
+    [MNTNS] = "mnt",
+    [NETNS] = "net",
+    [PIDNS] = "pid",
+    [USERNS] = "user",
+    [UTSNS] = "uts",
+};
 
 typedef struct _proc {
     char comm[COMM_LEN + 2 + 1]; /* add another 2 for thread brackets */
@@ -101,6 +123,12 @@ typedef struct _child {
     PROC *child;
     struct _child *next;
 } CHILD;
+
+struct ns_entry {
+    ino_t number;
+    CHILD *children;
+    struct ns_entry *next;
+};
 
 static struct {
     const char *empty_2;        /*    */
@@ -133,7 +161,8 @@ static int *width = NULL;
 static int *more = NULL;
 
 static int print_args = 0, compact = 1, user_change = 0, pids = 0, pgids = 0,
-    show_parents = 0, by_pid = 0, trunc = 1, wait_end = 0, ns_change = 0;
+    show_parents = 0, by_pid = 0, trunc = 1, wait_end = 0, ns_change = 0,
+    thread_names = 0, hide_threads = 0;
 static int show_scontext = 0;
 static int output_width = 132;
 static int cur_x = 1;
@@ -141,46 +170,22 @@ static char last_char = 0;
 static int dumped = 0;                /* used by dump_by_user */
 static int charlen = 0;                /* length of character */
 
-enum ns_type {
-    IPCNS = 0,
-    MNTNS,
-    NETNS,
-    PIDNS,
-    USERNS,
-    UTSNS
-};
-struct ns_entry;
-struct ns_entry {
-    ino_t number;
-    CHILD *children;
-    struct ns_entry *next;
-};
-
-static const char *ns_names[] = {
-    [IPCNS] = "ipc",
-    [MNTNS] = "mnt",
-    [NETNS] = "net",
-    [PIDNS] = "pid",
-    [USERNS] = "user",
-    [UTSNS] = "uts",
-};
-
-const char *get_ns_name(int id) {
+const char *get_ns_name(enum ns_type id) {
     if (id >= NUM_NS)
         return NULL;
     return ns_names[id];
 }
 
-static int get_ns_id(const char *name) {
+static enum ns_type get_ns_id(const char *name) {
     int i;
 
     for (i = 0; i < NUM_NS; i++)
         if (!strcmp(ns_names[i], name))
             return i;
-    return -1;
+    return NUM_NS;
 }
 
-static int verify_ns(int id)
+static int verify_ns(enum ns_type id)
 {
     char filename[50];
     struct stat s;
@@ -211,7 +216,7 @@ static inline void new_proc_ns(PROC *ns_task)
 static void find_ns_and_add(struct ns_entry **root, PROC *r, enum ns_type id)
 {
     struct ns_entry *ptr, *last = NULL;
-    CHILD **c;
+    CHILD *tmp_child, **c;
 
     for (ptr = *root; ptr; ptr = ptr->next) {
         if (ptr->number == r->ns[id])
@@ -250,7 +255,9 @@ static void find_ns_and_add(struct ns_entry **root, PROC *r, enum ns_type id)
     if (r->parent) {
         for (c = &r->parent->children; *c; c = &(*c)->next) {
             if ((*c)->child == r) {
-                *c = (*c)->next;
+                tmp_child = (*c)->next;
+                free(*c);
+                *c = tmp_child;
                 break;
             }
         }
@@ -262,7 +269,7 @@ static void find_ns_and_add(struct ns_entry **root, PROC *r, enum ns_type id)
 static PROC *find_proc(pid_t pid);
 static void sort_by_namespace(PROC *r, enum ns_type id, struct ns_entry **root)
 {
-    CHILD *walk;
+    CHILD *walk, *next;
 
     /* first run, find the first process */
     if (!r) {
@@ -274,8 +281,12 @@ static void sort_by_namespace(PROC *r, enum ns_type id, struct ns_entry **root)
     if (r->parent == NULL || r->parent->ns[id] != r->ns[id])
         find_ns_and_add(root, r, id);
 
-    for (walk = r->children; walk; walk = walk->next)
+    walk = r->children;
+    while (walk) {
+        next = walk->next;
         sort_by_namespace(walk->child, id, root);
+        walk = next;
+    }
 }
 
 static void fix_orphans(security_context_t scontext);
@@ -290,10 +301,10 @@ static int get_output_width(void)
 
     env_columns = getenv("COLUMNS");
     if (env_columns && *env_columns) {
-	long t;
-	t = strtol(env_columns, &ep, 0);
-	if (!*ep && (t > 0) && (t < 0x7fffffffL))
-	    return (int)t;
+        long t;
+        t = strtol(env_columns, &ep, 0);
+        if (!*ep && (t > 0) && (t < 0x7fffffffL))
+            return (int)t;
     }
     if (ioctl(1, TIOCGWINSZ, &winsz) >= 0)
         if (winsz.ws_col)
@@ -341,6 +352,48 @@ static void free_buffers()
         more = NULL;
     }
     capacity = 0;
+}
+
+static void free_children(CHILD *children)
+{
+    CHILD *walk, *next;
+
+    walk = children;
+    while (walk != NULL) {
+        next = walk->next;
+        free(walk);
+        walk = next;
+    }
+}
+
+static void free_proc()
+{
+    PROC *walk, *next;
+    walk = list;
+    while (walk != NULL) {
+        next = walk->next;
+        free_children(walk->children);
+        if (walk->argv) {
+            free(walk->argv[0]);
+            free(walk->argv);
+        }
+        free(walk);
+        walk = next;
+    }
+    list = NULL;
+}
+
+static void free_namespace(struct ns_entry **nsroot)
+{
+    struct ns_entry *walk, *next;
+    walk = *nsroot;
+    while (walk != NULL) {
+        next = walk->next;
+        free_children(walk->children);
+        free(walk);
+        walk = next;
+    }
+    *nsroot = NULL;
 }
 
 static void out_char(char c)
@@ -411,10 +464,11 @@ static PROC *find_proc(pid_t pid)
 {
     PROC *walk;
 
-    for (walk = list; walk; walk = walk->next)
+    for (walk = list; walk; walk = walk->next) {
         if (walk->pid == pid)
-		  return walk;
-	return NULL;
+            return walk;
+    }
+    return NULL;
 }
 
 static PROC *new_proc(const char *comm, pid_t pid, uid_t uid,
@@ -499,24 +553,27 @@ static void
 rename_proc(PROC *this, const char *comm, uid_t uid)
 {
     PROC *tmp_child, *parent;
-	CHILD **walk;
+    CHILD **walk;
 
     strncpy(this->comm, comm, COMM_LEN+2);
     this->comm[COMM_LEN+1] = '\0';
     this->uid = uid;
 
-	/* Re-sort children in parent, now we have a name */
-	if (!by_pid && this->parent) {
-	    parent = this->parent;
+    /* Re-sort children in parent, now we have a name */
+    if (!by_pid && this->parent) {
+        parent = this->parent;
         for (walk = &parent->children; *walk; walk = &(*walk)->next) {
-		  if ( ((*walk)->next != NULL) && strcmp((*walk)->child->comm, (*walk)->next->child->comm) > 0 ) {
-			tmp_child = (*walk)->child;
-			(*walk)->child = (*walk)->next->child;
-			(*walk)->next->child = tmp_child;
-		  }
-		}
-	}
+            if (
+                ((*walk)->next != NULL) &&
+                strcmp((*walk)->child->comm, (*walk)->next->child->comm) > 0 ) {
+                tmp_child = (*walk)->child;
+                (*walk)->child = (*walk)->next->child;
+                (*walk)->next->child = tmp_child;
+            }
+        }
+    }
 }
+
 static void
 add_proc(const char *comm, pid_t pid, pid_t ppid, pid_t pgid, uid_t uid,
          const char *args, int size, char isthread, security_context_t scontext)
@@ -526,7 +583,7 @@ add_proc(const char *comm, pid_t pid, pid_t ppid, pid_t pgid, uid_t uid,
     if (!(this = find_proc(pid)))
         this = new_proc(comm, pid, uid, scontext);
     else {
-	    rename_proc(this, comm, uid);
+        rename_proc(this, comm, uid);
     }
     if (args)
         set_args(this, args, size);
@@ -593,7 +650,7 @@ static void
 dump_tree(PROC * current, int level, int rep, int leaf, int last,
           uid_t prev_uid, int closing)
 {
-    CHILD *walk, *next, **scan;
+    CHILD *walk, *next, *tmp_child, **scan;
     const struct passwd *pw;
     int lvl, i, add, offset, len, swapped, info, count, comm_len, first;
     const char *tmp, *here;
@@ -699,7 +756,9 @@ dump_tree(PROC * current, int level, int rep, int leaf, int last,
                 if (next == *scan)
                   next = (*scan)->next;
                 count++;
-                *scan = (*scan)->next;
+                tmp_child = (*scan)->next;
+                free(*scan);
+                *scan = tmp_child;
               }
             }
             dump_tree(walk->child, level + 1, count + 1,
@@ -732,7 +791,9 @@ dump_tree(PROC * current, int level, int rep, int leaf, int last,
                     if (next == *scan)
                         next = (*scan)->next;
                     count++;
-                    *scan = (*scan)->next;
+                    tmp_child = (*scan)->next;
+                    free(*scan);
+                    *scan = tmp_child;
                 }
         }
         if (first) {
@@ -771,7 +832,7 @@ static void dump_by_namespace(struct ns_entry *root)
     char buff[14];
 
     for ( ; ptr; ptr = ptr->next) {
-        snprintf(buff, sizeof(buff), "[%li]\n", ptr->number);
+        snprintf(buff, sizeof(buff), "[%li]\n", (long int)ptr->number);
         out_string(buff);
         for (c = ptr->children; c; c = c->next)
             dump_tree(c->child, 0, 1, 1, 1, 0, 0);
@@ -788,6 +849,7 @@ static void trim_tree_by_parent(PROC * current)
   if (!parent)
     return;
 
+  free_children(parent->children);
   parent->children = NULL;
   add_child(parent, current);
   trim_tree_by_parent(parent);
@@ -797,29 +859,46 @@ static char* get_threadname(const pid_t pid, const int tid, const char *comm)
 {
     FILE *file;
     char *thread_comm, *endcomm, *threadname;
-    char path[PATH_MAX + 1];
-    char readbuf[BUFSIZ + 1]; 
+    char *path = NULL;
+    size_t len = 0;
+    int nbytes;
+    char readbuf[BUFSIZ + 1];
 
     if (! (threadname = malloc(COMM_LEN + 2 + 1))) {
-	exit(2);
+        exit(2);
     }
-    if (snprintf(path, PATH_MAX, "%s/%d/task/%d/stat", PROC_BASE, pid, tid) < 0)
-	perror("get_threadname: asprintf");
+    if (!thread_names) {
+        sprintf(threadname, THREAD_FORMAT, COMM_LEN, comm);
+        return threadname;
+    }
+    len = snprintf(NULL, 0, "%s/%d/task/%d/stat", PROC_BASE, pid, tid);
+    if (len < 0)
+        exit(2);
+    len++;
+    path = malloc(len);
+    if (path == NULL)
+        exit(2);
+    nbytes = snprintf(path, len, "%s/%d/task/%d/stat", PROC_BASE, pid, tid);
+    if (nbytes < 0 || nbytes >= len)
+        perror("get_threadname: snprintf");
     if ( (file = fopen(path, "r")) != NULL) {
-	if (fread(readbuf, 1, BUFSIZ, file) > 0) {
-	    if ((thread_comm = strchr(readbuf, '('))
-		    && (endcomm = strrchr(thread_comm, ')'))) {
-		++thread_comm;
-		*endcomm = '\0';
-		sprintf(threadname, "{%.*s}", COMM_LEN, thread_comm);
-		(void) fclose(file);
-		return threadname;
-	    }
-	}
+        if (fgets(readbuf, BUFSIZ, file) != NULL) {
+            if ((thread_comm = strchr(readbuf, '('))
+                && (endcomm = strrchr(thread_comm, ')'))) {
+                ++thread_comm;
+                *endcomm = '\0';
+                sprintf(threadname, THREAD_FORMAT, COMM_LEN, thread_comm);
+                (void) fclose(file);
+                free(path);
+                return threadname;
+            }
+        }
+        fclose(file);
     }
+    free(path);
+
     /* Fall back to old method */
-    sprintf(threadname, "{%.*s}", COMM_LEN, comm);
-    fclose(file);
+    sprintf(threadname, THREAD_FORMAT, COMM_LEN, comm);
     return threadname;
 }
 
@@ -900,45 +979,61 @@ static void read_proc(void)
               char *taskpath;
               int thread;
 
-              if (! (taskpath = malloc(strlen(path) + 10)))
-                exit(2);
-              sprintf(taskpath, "%s/task", path);
+              /* handle process threads */
+              if (! hide_threads) {
+                if (! (taskpath = malloc(strlen(path) + 10)))
+                  exit(2);
+                sprintf(taskpath, "%s/task", path);
 
-              if ((taskdir = opendir(taskpath)) != 0) {
-                /* if we have this dir, we're on 2.6 */
-                while ((dt = readdir(taskdir)) != NULL) {
-                  if ((thread = atoi(dt->d_name)) != 0) {
-                    if (thread != pid) {
-		      char *threadname;
-		      threadname = get_threadname(pid, thread, comm);
-                      if (print_args)
-                        add_proc(threadname, thread, pid, pgid, st.st_uid, 
-                            threadname, strlen (threadname) + 1, 1,scontext);
-                      else
-                        add_proc(threadname, thread, pid, pgid, st.st_uid, 
-                            NULL, 0, 1, scontext);
-                      free(threadname);
+                if ((taskdir = opendir(taskpath)) != 0) {
+                  /* if we have this dir, we're on 2.6 */
+                  while ((dt = readdir(taskdir)) != NULL) {
+                    if ((thread = atoi(dt->d_name)) != 0) {
+                      if (thread != pid) {
+                        char *threadname;
+                        threadname = get_threadname(pid, thread, comm);
+                        if (print_args)
+                          add_proc(threadname, thread, pid, pgid, st.st_uid,
+                              threadname, strlen (threadname) + 1, 1,scontext);
+                        else
+                          add_proc(threadname, thread, pid, pgid, st.st_uid,
+                              NULL, 0, 1, scontext);
+                        free(threadname);
                       }
                     }
                   }
                   (void) closedir(taskdir);
                 }
-              free(taskpath);
+                free(taskpath);
+              }
+
+              /* handle process */
               if (!print_args)
                 add_proc(comm, pid, ppid, pgid, st.st_uid, NULL, 0, 0, scontext);
               else {
                 sprintf(path, "%s/%d/cmdline", PROC_BASE, pid);
                 if ((fd = open(path, O_RDONLY)) < 0) {
-                  perror(path);
-                  exit(1);
+          /* If this fails then the process is gone.  If a PID
+		   * was specified on the command-line then we might
+		   * not even be interested in the current process.
+		   * There's no sensible way of dealing with this race
+		   * so we might as well behave as if the current
+		   * process did not exist.  */
+                    (void) fclose(file);
+                    free(path);
+                    continue;
                 }
                 if ((size = read(fd, buffer, buffer_size)) < 0) {
-                  perror(path);
-                  exit(1);
+                    /* As above. */
+                    close(fd);
+                    (void) fclose(file);
+                    free(path);
+                    continue;
                 }
                 (void) close(fd);
-                /* If we have read the maximum screen length of args, bring it back by one to stop overflow */
-                if (size >= buffer_size)
+                /* If we have read the maximum screen length of args,
+                 * bring it back by one to stop overflow */
+                if (size >= (int)buffer_size)
                   size--;
                 if (size)
                   buffer[size++] = 0;
@@ -963,34 +1058,41 @@ static void read_proc(void)
   }
 }
 
+
+/* When using kernel 3.3 with hidepid feature enabled on /proc
+ * then we need fake root pid and gather all the orphan processes
+ * that is, processes with no known parent
+ * As we cannot be sure if it is just the root pid or others missing
+ * we gather the lot
+ */
 static void fix_orphans(security_context_t scontext)
 {
-  /* When using kernel 3.3 with hidepid feature enabled on /proc
-   * then we need fake root pid and gather all the orphan processes
-   * that is, processes with no known parent
-   * As we cannot be sure if it is just the root pid or others missing
-   * we gather the lot
-   */
-  PROC *root, *walk;
+    PROC *root, *walk;
 
-  if (!(root = find_proc(ROOT_PID))) {
-    root = new_proc("?", ROOT_PID, 0, scontext);
-  }
-  for (walk = list; walk; walk = walk->next) {
-	if (walk->pid == 1 || walk->pid == 0)
-	  continue;
-	if (walk->parent == NULL) { 
-	  add_child(root, walk);
-      walk->parent = root;
-	}
-  }
+    if (!(root = find_proc(ROOT_PID))) {
+        root = new_proc("?", ROOT_PID, 0, scontext);
+    }
+    for (walk = list; walk; walk = walk->next) {
+        if (walk->pid == 1 || walk->pid == 0)
+            continue;
+        if (walk->parent == NULL) {
+            add_child(root, walk);
+            walk->parent = root;
+        }
+    }
 }
+
 
 static void usage(void)
 {
     fprintf(stderr,
             _
-            ("Usage: pstree [ -a ] [ -c ] [ -h | -H PID ] [ -l ] [ -n ] [ -p ] [ -g ] [ -u ]\n"
+            (
+#ifdef WITH_SELINUX
+             "Usage: pstree [-acglpsStuZ] [ -h | -H PID ] [ -n | -N type ]\n"
+#else                                 /*WITH_SELINUX */
+             "Usage: pstree [-acglpsStu] [ -h | -H PID ] [ -n | -N type ]\n"
+#endif                                /*WITH_SELINUX */
              "              [ -A | -G | -U ] [ PID | USER ]\n"
              "       pstree -V\n" "Display a tree of processes.\n\n"
              "  -a, --arguments     show command line arguments\n"
@@ -1004,16 +1106,20 @@ static void usage(void)
              "  -l, --long          don't truncate long lines\n"
              "  -n, --numeric-sort  sort output by PID\n"
              "  -N type,\n"
-             "  --ns-sort=type      sort by namespace type (ipc, mnt, net, pid, user, uts)\n"
+             "  --ns-sort=type      sort by namespace type (cgroup, ipc, mnt, net, pid,\n"
+             "                                              user, uts)\n"
              "  -p, --show-pids     show PIDs; implies -c\n"
              "  -s, --show-parents  show parents of the selected process\n"
              "  -S, --ns-changes    show namespace transitions\n"
+             "  -t, --thread-names  show full thread names\n"
+             "  -T, --hide-threads  hide threads, show only processes\n"
              "  -u, --uid-changes   show uid transitions\n"
              "  -U, --unicode       use UTF-8 (Unicode) line drawing characters\n"
              "  -V, --version       display version information\n"));
 #ifdef WITH_SELINUX
     fprintf(stderr,
-            _("  -Z     show         SELinux security contexts\n"));
+            _("  -Z, --security-context\n"
+              "                      show SELinux security contexts\n"));
 #endif                                /*WITH_SELINUX */
     fprintf(stderr, _("  PID    start at this PID; default is 1 (init)\n"
                       "  USER   show only trees rooted at processes of this user\n\n"));
@@ -1025,7 +1131,7 @@ void print_version()
     fprintf(stderr, _("pstree (PSmisc) %s\n"), VERSION);
     fprintf(stderr,
             _
-            ("Copyright (C) 1993-2009 Werner Almesberger and Craig Small\n\n"));
+            ("Copyright (C) 1993-2017 Werner Almesberger and Craig Small\n\n"));
     fprintf(stderr,
             _("PSmisc comes with ABSOLUTELY NO WARRANTY.\n"
               "This is free software, and you are welcome to redistribute it under\n"
@@ -1043,7 +1149,7 @@ int main(int argc, char **argv)
     char termcap_area[1024];
     char *termname, *endptr;
     int c, pid_set;
-    enum ns_type nsid = -1;
+    enum ns_type nsid = NUM_NS;
 
     struct option options[] = {
         {"arguments", 0, NULL, 'a'},
@@ -1059,6 +1165,8 @@ int main(int argc, char **argv)
         {"show-pgids", 0, NULL, 'g'},
         {"show-parents", 0, NULL, 's'},
         {"ns-changes", 0, NULL, 'S' },
+        {"thread-names", 0, NULL, 't'},
+        {"hide-threads", 0, NULL, 'T'},
         {"uid-changes", 0, NULL, 'u'},
         {"unicode", 0, NULL, 'U'},
         {"version", 0, NULL, 'V'},
@@ -1093,7 +1201,7 @@ int main(int argc, char **argv)
     } else if (isatty(1) && (termname = getenv("TERM")) &&
                (strlen(termname) > 0) &&
                (setupterm(NULL, 1 /* stdout */ , NULL) == OK) &&
-               (tigetstr("acsc") > 0)) {
+               (tigetstr("acsc") != NULL) && (tigetstr("acsc") != (char *)-1)) {
         /*
          * Failing that, if TERM is defined, a non-null value, and the terminal
          * has the VT100 graphics charset, use it.
@@ -1109,11 +1217,11 @@ int main(int argc, char **argv)
 
 #ifdef WITH_SELINUX
     while ((c =
-            getopt_long(argc, argv, "aAcGhH:nN:pglsSuUVZ", options,
+            getopt_long(argc, argv, "aAcGhH:nN:pglsStTuUVZ", options,
                         NULL)) != -1)
 #else                                /*WITH_SELINUX */
     while ((c =
-            getopt_long(argc, argv, "aAcGhH:nN:pglsSuUV", options, NULL)) != -1)
+            getopt_long(argc, argv, "aAcGhH:nN:pglsStTuUV", options, NULL)) != -1)
 #endif                                /*WITH_SELINUX */
         switch (c) {
         case 'a':
@@ -1157,7 +1265,7 @@ int main(int argc, char **argv)
             break;
         case 'N':
             nsid = get_ns_id(optarg);
-            if (nsid == -1)
+            if (nsid == NUM_NS)
                  usage();
             if (verify_ns(nsid)) {
                  fprintf(stderr,
@@ -1179,6 +1287,12 @@ int main(int argc, char **argv)
             break;
         case 'S':
             ns_change = 1;
+            break;
+        case 't':
+            thread_names = 1;
+            break;
+        case 'T':
+            hide_threads = 1;
             break;
         case 'u':
             user_change = 1;
@@ -1226,7 +1340,7 @@ int main(int argc, char **argv)
       pid = ROOT_PID;
     }
 
-    if (nsid != -1) {
+    if (nsid != NUM_NS) {
         sort_by_namespace(NULL, nsid, &nsroot);
         dump_by_namespace(nsroot);
     } else if (!pw)
@@ -1239,6 +1353,8 @@ int main(int argc, char **argv)
         }
     }
     free_buffers();
+    free_proc();
+    free_namespace(&nsroot);
     if (wait_end == 1) {
         fprintf(stderr, _("Press return to close\n"));
         (void) getchar();

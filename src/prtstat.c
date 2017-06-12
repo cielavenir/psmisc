@@ -1,7 +1,7 @@
 /*
  * prtstat.c - Print a processes stat file
  *
- * Copyright (C) 2009 Craig Small
+ * Copyright (C) 2009-2017 Craig Small
  * Based upon a shell script pstat by martin f. krafft <madduck@madduck.net>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -63,7 +63,7 @@ static void usage(const char *errormsg)
 static void print_version(void)
 {
   fprintf(stderr, _("prtstat (PSmisc) %s\n"), VERSION);
-  fprintf(stderr, _( "Copyright (C) 2009 Craig Small\n\n"));
+  fprintf(stderr, _( "Copyright (C) 2009-2017 Craig Small\n\n"));
   fprintf(stderr, _(
 		"PSmisc comes with ABSOLUTELY NO WARRANTY.\n"
 		"This is free software, and you are welcome to redistribute it under\n"
@@ -214,8 +214,7 @@ static void print_stat(const int pid, const opt_type options)
   char *bptr;
   FILE *fp;
 
-  struct proc_info *pr;
-  pr = malloc(sizeof(struct proc_info));
+  struct proc_info *pr = NULL;
 
   if ( (asprintf(&pathname, "/proc/%d/stat",(int)pid)) < 0) {
 	perror(_("asprintf in print_stat failed.\n"));
@@ -227,16 +226,26 @@ static void print_stat(const int pid, const opt_type options)
 	else
 	  fprintf(stderr, _("Unable to open stat file for pid %d (%s)\n"),(int)pid,strerror(errno));
 	free(pathname);
+	free(pr);
 	return;
   }
   free(pathname);
 
-  if (fgets(buf,BUFSIZ,fp) == NULL) return;
+  if (fgets(buf,BUFSIZ,fp) == NULL) {
+      fclose(fp);
+      return;
+  }
+  fclose(fp);
   bptr = strchr(buf, '(');
   if (bptr == NULL) return;
   bptr++;
-  sscanf(bptr,
-	  "%a[^)]) "
+  if ((pr = malloc(sizeof(struct proc_info))) == NULL) {
+      fprintf(stderr, _("Unable to allocate memory for proc_info\n"));
+      return;
+  }
+  pr->comm = NULL;
+  if (sscanf(bptr,
+	  "%m[^)]) "
 	  "%c "
 	  "%d %d %d %d %d %d"
 	  "%lu %lu %lu %lu " /*flts*/
@@ -265,14 +274,15 @@ static void print_stat(const int pid, const opt_type options)
 	   &pr->exit_signal, &pr->processor, &pr->rt_priority,
 	   &pr->policy, &pr->blkio, 
 	   &pr->guest_time, &pr->cguest_time
-		 );
-  if (options & OPT_RAW) {
-	print_raw_stat(pid, pr);
-	return;
-  }
-  print_formated_stat(pid, pr);
-
-
+		 ) == 39) {
+    if (options & OPT_RAW)
+        print_raw_stat(pid, pr);
+    else
+        print_formated_stat(pid, pr);
+         } else 
+             fprintf(stderr, _("Unable to scan stat file"));
+  free(pr->comm);
+  free(pr);
 }
 
 int main(int argc, char *argv[])
