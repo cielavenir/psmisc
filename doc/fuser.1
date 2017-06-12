@@ -1,12 +1,12 @@
 .\"
 .\" Copyright 1993-2005 Werner Almesberger
-.\"           2005-2012 Craig Small
+.\"           2005-2016 Craig Small
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
 .\" the Free Software Foundation; either version 2 of the License, or
 .\" (at your option) any later version.
 .\"
-.TH FUSER 1 "2012-07-28" "psmisc" "User Commands"
+.TH FUSER 1 "2016-04-04" "psmisc" "User Commands"
 .SH NAME
 fuser \- identify processes using files or sockets
 .SH SYNOPSIS
@@ -61,6 +61,9 @@ root directory.
 .TP
 .B m
 mmap'ed file or shared library.
+.TP
+.B .
+Placeholder, omitted in default display mode.
 .PD
 .RE
 .LP
@@ -119,6 +122,12 @@ Ask the user for confirmation before killing a process. This option is
 silently ignored if
 .B \-k
 is not present too.
+.TP
+\fB\-I\fR, \fB\-\-inode\fR
+For the name space
+.B file
+let all comparisions be based on the inodes of the specified file(s)
+and never on the file names even on network based file systems.
 .TP
 \fB\-l\fR, \fB\-\-list\-signals\fR
 List all known signal names.
@@ -187,7 +196,7 @@ Verbose mode.  Processes are shown in a
 style.  The fields PID, USER and COMMAND are similar to
 .BR ps .
 ACCESS shows how the process accesses the file.  Verbose mode will also
-show when a particular file is being access as a mount point, knfs
+show when a particular file is being accessed as a mount point, knfs
 export or swap file.  In this case
 .B kernel
 is shown instead of the PID.
@@ -235,6 +244,15 @@ privileges.  As a consequence, files opened by processes belonging to
 other users may not be listed and executables may be classified as
 mapped only.
 .PP
+.B fuser
+cannot report on any processes that it doesn't have permission to look
+at the file descriptor table for.  The most common time this problem
+occurs is when looking for TCP or UDP sockets when running
+.B fuser
+as a non-root user.  In this case
+.B fuser
+will report no access.
+.PP
 Installing
 .B fuser
 SUID root will avoid problems associated with partial information, but
@@ -261,16 +279,7 @@ fuser \-m /dev/sgX will show (or kill with the \-k flag) all processes,
 even if you don't have that device configured.  There may be other
 devices it does this for too.
 .PP
-.B fuser
-cannot report on any processes that it doesn't have permission to look
-at the file descriptor table for.  The most common time this problem
-occurs is when looking for TCP or UDP sockets when running
-.B fuser
-as a non-root user.  In this case
-.B fuser
-will report no access
-.PP
-The mount \-m option will match any file within the save device as the
+The mount \-m option will match any file within the same device as the
 specified file, use the \-M option as well if you mean to specify only
 the mount point.
 .SH "SEE ALSO"
