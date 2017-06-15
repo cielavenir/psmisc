@@ -1,3 +1,12 @@
+psmisc (23.0-2) UNRELEASED; urgency=medium
+
+  * New upstream source
+  * killall: Remove debug output Closes: #864753
+  * docs: distribute pslog.1
+  * docs: distribute README.md Closes: #864752
+
+ -- Craig Small <csmall@debian.org>  Fri, 16 Jun 2017 06:44:35 +1000
+
 psmisc (23.0-1) unstable; urgency=medium
 
   * New upstream release
