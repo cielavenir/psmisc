@@ -1,4 +1,4 @@
-psmisc (23.0-2) UNRELEASED; urgency=medium
+psmisc (23.1-1) UNRELEASED; urgency=medium
 
   * New upstream source
   * killall: Remove debug output Closes: #864753
