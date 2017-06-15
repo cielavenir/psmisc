@@ -289,7 +289,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-man_MANS = killall.1 peekfd.1 prtstat.1 pstree.1 $(am__append_1)
+man_MANS = killall.1 peekfd.1 prtstat.1 pslog.1 pstree.1 \
+	$(am__append_1)
 EXTRA_MANS = $(am__append_2)
 EXTRA_DIST = $(man_MANS) $(EXTRA_MANS)
 all: all-am
