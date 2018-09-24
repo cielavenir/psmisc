@@ -1,3 +1,13 @@
+psmisc (23.2-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+  * killall: look at all namespaces by default
+  * killall: proper signal name parsing
+  * docs: Fix fuser.1 groff errors Closes: #900225
+  * pslog: Define PATH_MAX if required Closes: #905797
+
+ -- Craig Small <csmall@debian.org>  Mon, 24 Sep 2018 20:07:51 +1000
+
 psmisc (23.1-1) unstable; urgency=medium
 
   * New upstream source
