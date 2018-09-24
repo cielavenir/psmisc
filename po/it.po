@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: psmisc 22.21-pre2\n"
 "Report-Msgid-Bugs-To: csmall@enc.com.au\n"
-"POT-Creation-Date: 2018-09-12 22:20+1000\n"
+"POT-Creation-Date: 2018-09-24 20:02+1000\n"
 "PO-Revision-Date: 2015-08-05 12:17+0100\n"
 "Last-Translator: Marco Colombo <m.colombo@ed.ac.uk>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
@@ -336,23 +336,23 @@ msgstr "Formato orario non valido"
 msgid "Cannot find user %s\n"
 msgstr "Impossibile trovare l'utente %s\n"
 
-#: src/killall.c:934
+#: src/killall.c:936
 #, fuzzy
 msgid "Invalid namespace PID"
 msgstr "Nome di contesto non valido"
 
-#: src/killall.c:943
+#: src/killall.c:945
 #, c-format
 msgid "Bad regular expression: %s\n"
 msgstr "Espressione regolare non valida: %s\n"
 
 # killall: %s è vuoto (non montato?)
-#: src/killall.c:978
+#: src/killall.c:986
 #, c-format
 msgid "killall: Maximum number of names is %d\n"
 msgstr "killall: Il massimo numero di nomi è %d\n"
 
-#: src/killall.c:983
+#: src/killall.c:991
 #, c-format
 msgid "killall: %s lacks process entries (not mounted ?)\n"
 msgstr "killall: %s non ha una voce di processo (non montato?)\n"

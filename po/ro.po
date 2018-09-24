@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: psmisc-21.6pre1\n"
 "Report-Msgid-Bugs-To: csmall@enc.com.au\n"
-"POT-Creation-Date: 2018-09-12 22:20+1000\n"
+"POT-Creation-Date: 2018-09-24 20:02+1000\n"
 "PO-Revision-Date: 2005-02-24 12:00-0500\n"
 "Last-Translator: Laurentiu Buzdugan <lbuz@rolix.org>\n"
 "Language-Team: Romanian <translation-team-ro@lists.sourceforge.net>\n"
@@ -307,21 +307,21 @@ msgstr ""
 msgid "Cannot find user %s\n"
 msgstr ""
 
-#: src/killall.c:934
+#: src/killall.c:936
 msgid "Invalid namespace PID"
 msgstr ""
 
-#: src/killall.c:943
+#: src/killall.c:945
 #, c-format
 msgid "Bad regular expression: %s\n"
 msgstr ""
 
-#: src/killall.c:978
+#: src/killall.c:986
 #, fuzzy, c-format
 msgid "killall: Maximum number of names is %d\n"
 msgstr "Numãr maxim de nume este %d\n"
 
-#: src/killall.c:983
+#: src/killall.c:991
 #, fuzzy, c-format
 msgid "killall: %s lacks process entries (not mounted ?)\n"
 msgstr "%s este gol (nu este montat ?)\n"

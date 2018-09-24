@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: psmisc 22.2pre1\n"
 "Report-Msgid-Bugs-To: csmall@enc.com.au\n"
-"POT-Creation-Date: 2018-09-12 22:20+1000\n"
+"POT-Creation-Date: 2018-09-24 20:02+1000\n"
 "PO-Revision-Date: 2006-03-07 11:49+0200\n"
 "Last-Translator: Anton Zinoviev <zinoviev@debian.org>\n"
 "Language-Team: Bulgarian <dict@fsa-bg.org>\n"
@@ -341,23 +341,23 @@ msgstr ""
 msgid "Cannot find user %s\n"
 msgstr "Не може да бъде намерен потребител с име %s\n"
 
-#: src/killall.c:934
+#: src/killall.c:936
 #, fuzzy
 msgid "Invalid namespace PID"
 msgstr "Неправилен вид имена"
 
-#: src/killall.c:943
+#: src/killall.c:945
 #, c-format
 msgid "Bad regular expression: %s\n"
 msgstr "Неправилен регулярен израз: %s\n"
 
-#: src/killall.c:978
+#: src/killall.c:986
 #, fuzzy, c-format
 msgid "killall: Maximum number of names is %d\n"
 msgstr "Максималният брой имена е %d\n"
 
 # Мисля, че става въпрос за /proc (Антон Зиновиев)
-#: src/killall.c:983
+#: src/killall.c:991
 #, fuzzy, c-format
 msgid "killall: %s lacks process entries (not mounted ?)\n"
 msgstr "%s е празна (не е монтирана?)\n"

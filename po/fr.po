@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: psmisc-23.2\n"
 "Report-Msgid-Bugs-To: csmall@enc.com.au\n"
-"POT-Creation-Date: 2018-09-12 22:20+1000\n"
+"POT-Creation-Date: 2018-09-24 20:02+1000\n"
 "PO-Revision-Date: 2018-08-16 19:56+0200\n"
 "Last-Translator: Frédéric Marchal <fmarchal@perso.be>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -353,21 +353,21 @@ msgstr "Format de temps incorrect"
 msgid "Cannot find user %s\n"
 msgstr "Utilisateur %s introuvable\n"
 
-#: src/killall.c:934
+#: src/killall.c:936
 msgid "Invalid namespace PID"
 msgstr "PID d'espace de nom invalide"
 
-#: src/killall.c:943
+#: src/killall.c:945
 #, c-format
 msgid "Bad regular expression: %s\n"
 msgstr "Mauvaise expression régulière : %s\n"
 
-#: src/killall.c:978
+#: src/killall.c:986
 #, c-format
 msgid "killall: Maximum number of names is %d\n"
 msgstr "killall: Le nombre maximum de noms est %d\n"
 
-#: src/killall.c:983
+#: src/killall.c:991
 #, c-format
 msgid "killall: %s lacks process entries (not mounted ?)\n"
 msgstr "killall: %s n'a aucune entrée de processus (pas monté ?)\n"

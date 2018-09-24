@@ -1,15 +1,16 @@
 # Traditional Chinese Messages for psmisc.
 # Copyright (C) 2008 Free Software Foundation, Inc.
 # This file is distributed under the same license as the psmisc package.
-# Wei-Lun Chao <bluebat@member.fsf.org>, 2009, 2013, 2015.
 #
+# Wei-Lun Chao <bluebat@member.fsf.org>, 2009, 2013, 2015.
+# pan93412 <pan93412@gmail.com>, 2018.
 msgid ""
 msgstr ""
-"Project-Id-Version: psmisc 22.21-pre2\n"
+"Project-Id-Version: psmisc 23.2\n"
 "Report-Msgid-Bugs-To: csmall@enc.com.au\n"
-"POT-Creation-Date: 2018-09-12 22:20+1000\n"
-"PO-Revision-Date: 2015-10-08 12:39+0800\n"
-"Last-Translator: Wei-Lun Chao <bluebat@member.fsf.org>\n"
+"POT-Creation-Date: 2018-09-24 20:02+1000\n"
+"PO-Revision-Date: 2018-09-17 00:13+0800\n"
+"Last-Translator: pan93412 <pan93412@gmail.com>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
@@ -17,9 +18,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Lokalize 2.0\n"
 
 #: src/fuser.c:137
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Usage: fuser [-fIMuvw] [-a|-s] [-4|-6] [-c|-m|-n SPACE]\n"
 "             [-k [-i] [-SIGNAL]] NAME...\n"
@@ -43,19 +45,21 @@ msgid ""
 "  -w,--writeonly        kill only processes with write access\n"
 "  -V,--version          display version information\n"
 msgstr ""
-"用法：fuser [-fMuvw] [-a|-s] [-4|-6] [-c|-m|-n 空格] [-k [-i] [-信號]] 名"
-"稱…\n"
-"     fuser -l\n"
-"     fuser -V\n"
-"顯示何項行程使用指名的檔案、通訊端或檔案系統。\n"
+"用法： fuser [-fIMuvw] [-a|-s] [-4|-6] [-c|-m|-n 空白]\n"
+"             [-k [-i] [-SIGNAL]] 名稱...\n"
+"       fuser -l\n"
+"       fuser -V\n"
+"顯示哪個執行程序使用了該名稱的檔案、接口或檔案系統。\n"
 "\n"
-"  -a,--all              也顯示未使用的檔案\n"
-"  -i,--interactive      砍除之前先詢問 (若無 -k 則忽略)\n"
-"  -k,--kill             砍除存取指名檔案的行程\n"
+"  -a,--all              亦顯示未用到檔案\n"
+"  -i,--interactive      強制停止執行程序前詢問 (若沒有 -k 參數則忽略)\n"
+"  -I,--inode            始終使用 inode 來比較檔案\n"
+"  -k,--kill             強制停止存取該名稱檔案的執行程序\n"
 "  -l,--list-signals     列出可用的信號名稱\n"
-"  -m,--mount            顯示所有使用指名檔案系統或區塊裝置的行程\n"
+"  -m,--mount            顯示所有使用該名稱的檔案系統或\n"
+"                        block 區塊裝置的執行程序\n"
 "  -M,--ismountpoint     只有當名稱是掛載點時才完全達到要求\n"
-"  -n,--namespace 空間    在這個名稱空間中搜尋 (檔案、udp 或 tcp)\n"
+"  -n,--namespace 空間    在這個命名空間中搜尋 (檔案、udp 或 tcp)\n"
 "  -s,--silent           安靜地作業\n"
 "  -SIGNAL               發送這個信號以代替 SIGKILL\n"
 "  -u,--user             顯示使用者識別號\n"
@@ -91,12 +95,12 @@ msgid "fuser (PSmisc) %s\n"
 msgstr "fuser (PSmisc) %s\n"
 
 #: src/fuser.c:171 src/killall.c:782 src/pstree.c:1134
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Copyright (C) 1993-2017 Werner Almesberger and Craig Small\n"
 "\n"
 msgstr ""
-"著作權©1993-2010 Werner Almesberger 和 Craig Small\n"
+"著作權 © 1993-2017 Werner Almesberger 和 Craig Small\n"
 "\n"
 
 #: src/fuser.c:173 src/killall.c:784 src/peekfd.c:124 src/prtstat.c:68
@@ -160,11 +164,11 @@ msgstr "%s：無效的選項 %s\n"
 
 #: src/fuser.c:1160
 msgid "Namespace option requires an argument."
-msgstr "名稱空間選項需要一個引數。"
+msgstr "命名空間選項需要一個引數。"
 
 #: src/fuser.c:1177
 msgid "Invalid namespace name"
-msgstr "無效的名稱空間名稱"
+msgstr "無效的命名空間名稱"
 
 #: src/fuser.c:1242
 msgid "You can only use files with mountpoint options"
@@ -257,13 +261,15 @@ msgid "%s: no process found\n"
 msgstr "%s：找不到任何行程\n"
 
 #: src/killall.c:742
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Usage: killall [ -Z CONTEXT ] [ -u USER ] [ -y TIME ] [ -o TIME ] [ -"
 "eIgiqrvw ]\n"
 "               [ -s SIGNAL | -SIGNAL ] NAME...\n"
 msgstr ""
-"用法：killall [-Z 上下文] [-u 使用者] [ -eIgiqrvw ] [ -SIGNAL ] 名稱…\n"
+"用法：killall [ -Z 上下文 ] [ -u 使用者 ] [ -y 時間 ] [ -o 時間 ] [ -"
+"eIgiqrvw ]\n"
+"               [ -s SIGNAL | -SIGNAL ] 名稱...\n"
 
 #: src/killall.c:746
 #, c-format
@@ -271,7 +277,7 @@ msgid "Usage: killall [OPTION]... [--] NAME...\n"
 msgstr "用法：killall [選項]… [--] 名稱…\n"
 
 #: src/killall.c:749
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "       killall -l, --list\n"
 "       killall -V, --version\n"
@@ -310,6 +316,7 @@ msgstr ""
 "  -v,--verbose        如果信號已被成功發送則回報\n"
 "  -V,--version        顯示版本資訊\n"
 "  -w,--wait           等待行程的消滅\n"
+"  -n,--ns PID         符合屬於與 PID 相同命名空間的執行程序\n"
 
 #: src/killall.c:770
 #, c-format
@@ -329,22 +336,21 @@ msgstr "無效的時間格式"
 msgid "Cannot find user %s\n"
 msgstr "找不到使用者 %s\n"
 
-#: src/killall.c:934
-#, fuzzy
+#: src/killall.c:936
 msgid "Invalid namespace PID"
-msgstr "無效的名稱空間名稱"
+msgstr "無效的命名空間 PID"
 
-#: src/killall.c:943
+#: src/killall.c:945
 #, c-format
 msgid "Bad regular expression: %s\n"
 msgstr "不當的正規表示式：%s\n"
 
-#: src/killall.c:978
+#: src/killall.c:986
 #, c-format
 msgid "killall: Maximum number of names is %d\n"
 msgstr "killall：名稱數量最大值是 %d\n"
 
-#: src/killall.c:983
+#: src/killall.c:991
 #, c-format
 msgid "killall: %s lacks process entries (not mounted ?)\n"
 msgstr "killall：%s 缺乏行程條目 (未掛載？)\n"
@@ -369,7 +375,7 @@ msgstr ""
 "\n"
 
 #: src/peekfd.c:132
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Usage: peekfd [-8] [-n] [-c] [-d] [-V] [-h] <pid> [<fd> ..]\n"
 "    -8, --eight-bit-clean        output 8 bit clean streams.\n"
@@ -393,6 +399,16 @@ msgstr ""
 "    -h 印出這個說明。\n"
 "\n"
 "  按下 CTRL-C 以結束輸出。\n"
+"用法：peekfd [-8] [-n] [-c] [-d] [-V] [-h] <pid> [<fd> ..]\n"
+"    -8, --eight-bit-clean        輸出 8 位元 clean 串流。\n"
+"    -n, --no-headers             不顯示來自 fd 標頭的讀取與寫入\n"
+"    -c, --follow                 亦跳至任何新的子執行程序\n"
+"    -t, --tgid                   跳至 tgid 等於 <pid> 的所有線程.\n"
+"    -d, --duplicates-removed     從輸出中移除重複的讀取與寫入\n"
+"    -V, --version                顯示版本資訊\n"
+"    -h, --help                    顯示此說明\n"
+"\n"
+"  輸入 CTRL-C 結束輸出。\n"
 
 #: src/prtstat.c:54
 #, c-format
@@ -415,12 +431,12 @@ msgid "prtstat (PSmisc) %s\n"
 msgstr "prtstat (PSmisc) %s\n"
 
 #: src/prtstat.c:66
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Copyright (C) 2009-2017 Craig Small\n"
 "\n"
 msgstr ""
-"著作權©2009 Craig Small\n"
+"著作權 © 2009-2017 Craig Small\n"
 "\n"
 
 #: src/prtstat.c:78
@@ -540,14 +556,14 @@ msgid "Unable to open stat file for pid %d (%s)\n"
 msgstr "無法開啟 pid %d (%s) 的 stat 檔案\n"
 
 #: src/prtstat.c:243
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to allocate memory for proc_info\n"
-msgstr "無法為符合的行程配置記憶體：%s\n"
+msgstr "無法對 proc_info 分配記憶體\n"
 
 #: src/prtstat.c:283
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to scan stat file"
-msgstr "無法開啟 pid %d (%s) 的 stat 檔案\n"
+msgstr "無法掃描 stat 檔案"
 
 #: src/prtstat.c:318
 msgid "Invalid option"
@@ -568,7 +584,7 @@ msgid "%s is empty (not mounted ?)\n"
 msgstr "%s 是空的 (尚未掛載？)\n"
 
 #: src/pstree.c:1092
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Usage: pstree [-acglpsStuZ] [ -h | -H PID ] [ -n | -N type ]\n"
 "Usage: pstree [-acglpsStu] [ -h | -H PID ] [ -n | -N type ]\n"
@@ -598,10 +614,11 @@ msgid ""
 "  -U, --unicode       use UTF-8 (Unicode) line drawing characters\n"
 "  -V, --version       display version information\n"
 msgstr ""
-"用法：pstree [-a] [-c] [-h|-H PID] [-l] [-n] [-p] [-g] [-u]\n"
-"             [-A|-G|-U] [PID|使用者]\n"
-"      pstree -V\n"
-"顯示樹的行程。\n"
+"用法：pstree [-acglpsStuZ] [ -h | -H PID ] [ -n | -N 類型 ]\n"
+"用法：pstree [-acglpsStu] [ -h | -H PID ] [ -n | -N 類型 ]\n"
+"              [ -A | -G | -U ] [ PID | 使用者 ]\n"
+"       pstree -V\n"
+"顯示執行程序的樹狀圖。\n"
 "\n"
 "  -a, --arguments     顯示命令列引數\n"
 "  -A, --ascii         使用 ASCII 線條繪製字元\n"
@@ -614,20 +631,25 @@ msgstr ""
 "  -l, --long          不截斷長列\n"
 "  -n, --numeric-sort  依照 PID 排序輸出\n"
 "  -N 類型,\n"
-"  --ns-sort=類型      依照命名空間類型排序 (ipc, mnt, net, pid, user, uts)\n"
+"  --ns-sort=類型      依照命名空間類型排序 (cgroup, ipc, mnt, net, pid,\n"
+"                                              user, uts)\n"
 "  -p, --show-pids     顯示 PIDs；隱含 -c\n"
 "  -s, --show-parents  顯示已選行程的上層\n"
 "  -S, --ns-changes    顯示命名空間轉換\n"
+"  -t, --thread-names  顯示完整的執行緒名稱\n"
+"  -T, --hide-threads  隱藏執行緒，只顯示執行程序\n"
 "  -u, --uid-changes   顯示 uid 轉換\n"
 "  -U, --unicode       使用 UTF-8 (萬國碼) 線條繪製字元\n"
 "  -V, --version       顯示版本資訊\n"
 
 #: src/pstree.c:1121
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "  -Z, --security-context\n"
 "                      show SELinux security contexts\n"
-msgstr "  -Z     顯示         SELinux 安全語境\n"
+msgstr ""
+"  -Z, --security-context\n"
+"                      顯示 SELinux 安全性上下文\n"
 
 #: src/pstree.c:1124
 #, c-format
@@ -679,17 +701,3 @@ msgstr "按下輸入鍵以關閉\n"
 #, c-format
 msgid "%s: unknown signal; %s -l lists signals.\n"
 msgstr "%s: 不明的信號；%s -l 列出信號。\n"
-
-#~ msgid ""
-#~ "Copyright (C) 1993-2012 Werner Almesberger and Craig Small\n"
-#~ "\n"
-#~ msgstr ""
-#~ "著作權©1993-2012 Werner Almesberger 和 Craig Small\n"
-#~ "\n"
-
-#~ msgid ""
-#~ "Copyright (C) 1993-2009 Werner Almesberger and Craig Small\n"
-#~ "\n"
-#~ msgstr ""
-#~ "著作權©1993-2009 Werner Almesberger 和 Craig Small\n"
-#~ "\n"

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: psmisc 23.0-rc1\n"
 "Report-Msgid-Bugs-To: csmall@enc.com.au\n"
-"POT-Creation-Date: 2018-09-12 22:20+1000\n"
+"POT-Creation-Date: 2018-09-24 20:02+1000\n"
 "PO-Revision-Date: 2017-04-27 22:05+0200\n"
 "Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
 "Language-Team: Hungarian <translation-team-hu@lists.sourceforge.net>\n"
@@ -346,22 +346,22 @@ msgstr "Érvénytelen időformátum"
 msgid "Cannot find user %s\n"
 msgstr "A(z) %s felhasználó nem található\n"
 
-#: src/killall.c:934
+#: src/killall.c:936
 #, fuzzy
 msgid "Invalid namespace PID"
 msgstr "Érvénytelen névtérnév"
 
-#: src/killall.c:943
+#: src/killall.c:945
 #, c-format
 msgid "Bad regular expression: %s\n"
 msgstr "Hibás reguláris kifejezés: %s\n"
 
-#: src/killall.c:978
+#: src/killall.c:986
 #, c-format
 msgid "killall: Maximum number of names is %d\n"
 msgstr "killall: A nevek maximális száma %d\n"
 
-#: src/killall.c:983
+#: src/killall.c:991
 #, c-format
 msgid "killall: %s lacks process entries (not mounted ?)\n"
 msgstr "killall: %s nem tartalmaz folyamatbejegyzéseket (nincs csatolva?)\n"
