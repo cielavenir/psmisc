@@ -5,6 +5,7 @@ psmisc (23.2-1) UNRELEASED; urgency=medium
   * killall: proper signal name parsing
   * docs: Fix fuser.1 groff errors Closes: #900225
   * pslog: Define PATH_MAX if required Closes: #905797
+  * Update to Debian standards 4.2.1
 
  -- Craig Small <csmall@debian.org>  Mon, 24 Sep 2018 20:07:51 +1000
 
