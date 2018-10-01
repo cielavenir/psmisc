@@ -10,6 +10,7 @@ psmisc (23.2-1) UNRELEASED; urgency=medium
 
   [ Ondřej Nový ]
   * d/copyright: Use https protocol in Format field
+  * d/changelog: Remove trailing whitespaces
 
  -- Craig Small <csmall@debian.org>  Mon, 24 Sep 2018 20:07:51 +1000
 
@@ -134,7 +135,7 @@ psmisc (22.14-1) unstable; urgency=low
 psmisc (22.13-1) unstable; urgency=low
 
   * New upstream release
-    -  patch configure so pt_regs isn't used on SuperH. Fix by 
+    -  patch configure so pt_regs isn't used on SuperH. Fix by
        Nobuhiro Iwamatsu in Closes: #588986
     -  Cannot build peekfd on mips only mipsel, hopefully will unblock mips
        buildd
@@ -331,7 +332,7 @@ psmisc (21.4-1) unstable; urgency=low
 psmisc (21.3-1) unstable; urgency=low
 
   * New upstream version
-    - SELinux uses -d flag, so signals starting with S work 
+    - SELinux uses -d flag, so signals starting with S work
       Closes: #19370, #163360
     - Long command lines don't segfault Closes: #187241
   * Added most of Torsten SELINUX patch Closes:  #192122
