@@ -1,11 +1,15 @@
 psmisc (23.2-1) UNRELEASED; urgency=medium
 
+  [ Craig Small ]
   * New upstream release
   * killall: look at all namespaces by default
   * killall: proper signal name parsing
   * docs: Fix fuser.1 groff errors Closes: #900225
   * pslog: Define PATH_MAX if required Closes: #905797
   * Update to Debian standards 4.2.1
+
+  [ Ondřej Nový ]
+  * d/copyright: Use https protocol in Format field
 
  -- Craig Small <csmall@debian.org>  Mon, 24 Sep 2018 20:07:51 +1000
 
