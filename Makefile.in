@@ -91,7 +91,8 @@ host_triplet = @host@
 bin_PROGRAMS = src/killall$(EXEEXT) src/pslog$(EXEEXT) \
 	src/prtstat$(EXEEXT) src/pstree$(EXEEXT) $(am__EXEEXT_1) \
 	$(am__EXEEXT_2) $(am__EXEEXT_3) $(am__EXEEXT_4) \
-	$(am__EXEEXT_5) $(am__EXEEXT_6) $(am__EXEEXT_7)
+	$(am__EXEEXT_5) $(am__EXEEXT_6) $(am__EXEEXT_7) \
+	$(am__EXEEXT_8)
 @WANT_FUSER_TRUE@am__append_1 = src/fuser
 @WANT_PEEKFD_I386_TRUE@am__append_2 = src/peekfd
 @WANT_PEEKFD_I386_TRUE@am__append_3 = -DI386
@@ -101,11 +102,13 @@ bin_PROGRAMS = src/killall$(EXEEXT) src/pslog$(EXEEXT) \
 @WANT_PEEKFD_PPC_TRUE@am__append_7 = -DPPC
 @WANT_PEEKFD_ARM_TRUE@am__append_8 = src/peekfd
 @WANT_PEEKFD_ARM_TRUE@am__append_9 = -DARM
-@WANT_PEEKFD_MIPS_TRUE@am__append_10 = src/peekfd
-@WANT_PEEKFD_MIPS_TRUE@am__append_11 = -DMIPS
-@WANT_PEEKFD_M68K_TRUE@am__append_12 = src/peekfd
-@WANT_PEEKFD_M68K_TRUE@am__append_13 = -DM68K
-@WANT_TIMEOUT_STAT_TRUE@am__append_14 = src/timeout.c src/timeout.h
+@WANT_PEEKFD_ARM64_TRUE@am__append_10 = src/peekfd
+@WANT_PEEKFD_ARM64_TRUE@am__append_11 = -DARM64
+@WANT_PEEKFD_MIPS_TRUE@am__append_12 = src/peekfd
+@WANT_PEEKFD_MIPS_TRUE@am__append_13 = -DMIPS
+@WANT_PEEKFD_M68K_TRUE@am__append_14 = src/peekfd
+@WANT_PEEKFD_M68K_TRUE@am__append_15 = -DM68K
+@WANT_TIMEOUT_STAT_TRUE@am__append_16 = src/timeout.c src/timeout.h
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
@@ -129,8 +132,9 @@ CONFIG_CLEAN_VPATH_FILES =
 @WANT_PEEKFD_X86_64_TRUE@am__EXEEXT_3 = src/peekfd$(EXEEXT)
 @WANT_PEEKFD_PPC_TRUE@am__EXEEXT_4 = src/peekfd$(EXEEXT)
 @WANT_PEEKFD_ARM_TRUE@am__EXEEXT_5 = src/peekfd$(EXEEXT)
-@WANT_PEEKFD_MIPS_TRUE@am__EXEEXT_6 = src/peekfd$(EXEEXT)
-@WANT_PEEKFD_M68K_TRUE@am__EXEEXT_7 = src/peekfd$(EXEEXT)
+@WANT_PEEKFD_ARM64_TRUE@am__EXEEXT_6 = src/peekfd$(EXEEXT)
+@WANT_PEEKFD_MIPS_TRUE@am__EXEEXT_7 = src/peekfd$(EXEEXT)
+@WANT_PEEKFD_M68K_TRUE@am__EXEEXT_8 = src/peekfd$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__src_fuser_SOURCES_DIST = src/fuser.c src/comm.h src/signals.c \
@@ -422,7 +426,7 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -Wall -DLOCALEDIR=\"$(localedir)\" -I$(top_builddir)/src \
 	@HARDEN_CFLAGS@ $(am__append_3) $(am__append_5) \
 	$(am__append_7) $(am__append_9) $(am__append_11) \
-	$(am__append_13)
+	$(am__append_13) $(am__append_15)
 AM_LDFLAGS = @HARDEN_LDFLAGS@
 ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = \
@@ -432,7 +436,7 @@ SUBDIRS = \
 	  testsuite
 
 src_fuser_SOURCES = src/fuser.c src/comm.h src/signals.c src/signals.h \
-	src/i18n.h src/fuser.h src/lists.h $(am__append_14)
+	src/i18n.h src/fuser.h src/lists.h $(am__append_16)
 src_fuser_LDADD = @LIBINTL@
 src_killall_SOURCES = src/killall.c src/comm.h src/signals.c src/signals.h src/i18n.h
 src_killall_LDADD = @LIBINTL@ @SELINUX_LIB@
@@ -1119,7 +1123,7 @@ uninstall-am: uninstall-binPROGRAMS
 .PRECIOUS: Makefile
 
 
-src/signames.h: src/signames.c Makefile
+src/signames.h: src/signames.c Makefile src/$(am__dirstamp)
 		export LC_ALL=C ; \
 		@CPP@ -dM $< |\
 		tr -s '\t ' ' ' | sort -n -k 3 | sed \

@@ -40,6 +40,12 @@ if WANT_PEEKFD_ARM
   bin_PROGRAMS += src/peekfd
   AM_CPPFLAGS += -DARM
 endif
+
+if WANT_PEEKFD_ARM64
+  bin_PROGRAMS += src/peekfd
+  AM_CPPFLAGS += -DARM64
+endif
+
 if WANT_PEEKFD_MIPS
   bin_PROGRAMS += src/peekfd
   AM_CPPFLAGS += -DMIPS
@@ -79,7 +85,7 @@ EXTRA_DIST = src/signames.c README.md misc/git-version-gen
 
 CLEANFILES = src/signames.h
 
-src/signames.h: src/signames.c Makefile
+src/signames.h: src/signames.c Makefile src/$(am__dirstamp)
 		export LC_ALL=C ; \
 		@CPP@ -dM $< |\
 		tr -s '\t ' ' ' | sort -n -k 3 | sed \
