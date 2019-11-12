@@ -1,4 +1,10 @@
-psmisc (23.2-2) UNRELEASED; urgency=medium
+psmisc (23.3-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Craig Small <csmall@debian.org>  Tue, 12 Nov 2019 21:33:58 +1100
+
+psmisc (23.2-3) UNRELEASED; urgency=medium
 
   [ Ondřej Nový ]
   * d/copyright: Use https protocol in Format field
@@ -9,6 +15,7 @@ psmisc (23.2-2) UNRELEASED; urgency=medium
   * Update to standards 4.4.1
 
  -- Craig Small <csmall@debian.org>  Fri, 18 Oct 2019 14:44:34 +1100
+
 
 psmisc (23.2-1) unstable; urgency=medium
 
