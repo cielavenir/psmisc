@@ -34,8 +34,17 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <ctype.h>
+#include <dirent.h>
+#include <stdint.h>
+#include <errno.h>
+#include <string.h>
 
 #include "i18n.h"
+
+#ifdef ARM64
+#include <sys/uio.h>
+#include <linux/elf.h>
+#endif
 
 #ifdef I386
 	#define REG_ORIG_ACCUM orig_eax
@@ -50,6 +59,10 @@
 	#define REG_PARAM2 rsi
 	#define REG_PARAM3 rdx
 #elif PPC
+	#if !defined(__WORDSIZE)
+	#include <bits/reg.h>
+	#endif
+
 	#define REG_ORIG_ACCUM gpr[0]
 	#define REG_ACCUM gpr[3]
 	#define REG_PARAM1 orig_gpr3
@@ -67,6 +80,16 @@
 	#define REG_PARAM1 ARM_ORIG_r0
 	#define REG_PARAM2 ARM_r1
 	#define REG_PARAM3 ARM_r2
+
+#elif defined(ARM64)
+        #define REG_ORIG_ACCUM  regs[8]
+        #define REG_ACCUM       regs[0]
+        #define REG_PARAM1      regs[0]
+        #define REG_PARAM2      regs[1]
+        #define REG_PARAM3      regs[2]
+
+
+
 #elif defined(MIPS)
 #ifndef MIPSEL
 #error only little endian supported
@@ -88,6 +111,59 @@
 int num_attached_pids = 0;
 pid_t attached_pids[MAX_ATTACHED_PIDS];
 int *fds = NULL;
+
+#ifdef ARM64
+struct user_pt_regs_node {
+	struct user_pt_regs regs;
+	struct user_pt_regs_node *user_pt_regs_next;
+};
+
+void user_pt_regs_insert(struct user_pt_regs_node** user_pt_regs_head, struct user_pt_regs *regs)
+{
+    struct user_pt_regs_node* new_node =
+            (struct user_pt_regs_node*) malloc(sizeof(struct user_pt_regs_node));
+
+	memcpy(&new_node->regs, regs, sizeof(struct user_pt_regs));
+    new_node->user_pt_regs_next = (*user_pt_regs_head);
+    (*user_pt_regs_head) = new_node;
+}
+
+struct user_pt_regs * user_pt_regs_search(struct user_pt_regs_node** user_pt_regs_head, struct user_pt_regs *regs)
+{
+	struct user_pt_regs_node* current = *user_pt_regs_head;
+	while (current != NULL)
+	{
+		if ((current->regs.REG_ORIG_ACCUM == regs->REG_ORIG_ACCUM) && (current->regs.REG_PARAM2 == regs->REG_PARAM2))
+			return &current->regs;
+		current = current->user_pt_regs_next;
+	}
+	return NULL;
+}
+
+
+int user_pt_regs_delete(struct user_pt_regs_node** user_pt_regs_head, struct user_pt_regs *regs)
+{
+	struct user_pt_regs_node* temp = *user_pt_regs_head, *prev;
+
+	 if (temp != NULL && (&temp->regs == regs))
+	 {
+		 *user_pt_regs_head = temp->user_pt_regs_next;
+		 free(temp);
+		 return 0;
+	 }
+
+	 while (temp != NULL && (&temp->regs != regs))
+	 {
+		 prev = temp;
+		 temp = temp->user_pt_regs_next;
+	 }
+
+	 if (temp == NULL) return -1;
+	 prev->user_pt_regs_next = temp->user_pt_regs_next;
+	 free(temp);
+     return 0;
+}
+#endif
 
 void detach(int signum) {
 	int i;
@@ -128,6 +204,7 @@ void usage() {
 	  "    -8, --eight-bit-clean        output 8 bit clean streams.\n"
 	  "    -n, --no-headers             don't display read/write from fd headers.\n"
 	  "    -c, --follow                 peek at any new child processes too.\n"
+	  "    -t, --tgid                   peek at all threads where tgid equals <pid>.\n"
 	  "    -d, --duplicates-removed     remove duplicate read/writes from the output.\n"
 	  "    -V, --version                prints version info.\n"
 	  "    -h, --help                   prints this help.\n"
@@ -148,6 +225,8 @@ int main(int argc, char **argv)
 	int eight_bit_clean = 0;
 	int no_headers = 0;
 	int follow_forks = 0;
+	int follow_clones = 0;
+	int tgid = 0;
 	int remove_duplicates = 0;
 	int optc;
     int target_pid = 0;
@@ -159,6 +238,7 @@ int main(int argc, char **argv)
       {"eight-bit-clean", 0, NULL, '8'},
       {"no-headers", 0, NULL, 'n'},
       {"follow", 0, NULL, 'c'},
+      {"tgid", 0, NULL, 't'},
       {"duplicates-removed", 0, NULL, 'd'},
       {"help", 0, NULL, 'h'},
       {"version", 0, NULL, 'V'},
@@ -176,7 +256,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	while ((optc = getopt_long(argc, argv, "8ncdhV",options, NULL)) != -1) {
+	while ((optc = getopt_long(argc, argv, "8nctdhV", options, NULL)) != -1) {
 		switch(optc) {
 			case '8':
 				eight_bit_clean = 1;
@@ -186,6 +266,11 @@ int main(int argc, char **argv)
 				break;
 			case 'c':
 				follow_forks = 1;
+				follow_clones = 1;
+				break;
+			case 't':
+				tgid = 1;
+				follow_clones = 1;
 				break;
 			case 'd':
 				remove_duplicates = 1;
@@ -214,18 +299,41 @@ int main(int argc, char **argv)
     }
 
 	attach(target_pid);
+
+	if (tgid) {
+		DIR *taskdir;
+		struct dirent *dt;
+		char taskpath[24];
+
+		snprintf(taskpath, 24, "/proc/%d/task", target_pid);
+
+		if ((taskdir = opendir(taskpath)) != 0) {
+			while ((dt = readdir(taskdir)) != NULL) {
+				int thread = atoi(dt->d_name);
+				if ((thread != 0) && (thread != target_pid))
+					attach(thread);
+			}
+			closedir(taskdir);
+		}
+	}
+
 	if (num_attached_pids == 0)
 		return 1;
 
 	signal(SIGINT, detach);
 
-	ptrace(PTRACE_SYSCALL, attached_pids[0], 0, 0);
+	for (i = 0; i < num_attached_pids; i++)
+		ptrace(PTRACE_SYSCALL, attached_pids[i], 0, 0);
 
 	/*int count = 0;*/
 	int lastfd = numfds > 0 ? fds[0] : 0;
 	int lastdir = 3;
 	unsigned char *lastbuf = NULL;
 	unsigned long last_buf_size = -1;
+
+#ifdef ARM64
+	struct user_pt_regs_node* user_pt_regs_head = NULL;
+#endif
 
 	for(;;) {
 		int status;
@@ -241,6 +349,18 @@ int main(int argc, char **argv)
 #elif defined(ARM)
 			struct pt_regs regs;
 			ptrace(PTRACE_GETREGS, pid, 0, &regs);
+
+#elif defined(ARM64)
+			struct user_pt_regs regs, *old_regs;
+			struct iovec io;
+			io.iov_base = &regs;
+			io.iov_len = sizeof(regs);
+
+			if (ptrace(PTRACE_GETREGSET, pid, (void*) NT_PRSTATUS, (void*) &io) == -1) {
+				printf("ARM64: PTRACE_GETREGSET: %s\n", strerror(errno));
+				return errno;
+			}
+
 #elif defined(MIPS)
 			struct pt_regs regs;
 			long pc = ptrace(PTRACE_PEEKUSER, pid, 64, 0);
@@ -254,11 +374,26 @@ int main(int argc, char **argv)
 			ptrace(PTRACE_GETREGS, pid, 0, &regs);
 #endif		
 			/*unsigned int b = ptrace(PTRACE_PEEKTEXT, pid, regs.eip, 0);*/
-			if (follow_forks && (regs.REG_ORIG_ACCUM == SYS_fork || regs.REG_ORIG_ACCUM == SYS_clone)) {
+
+#if defined(ARM64)
+			if (follow_forks && regs.REG_ORIG_ACCUM == SYS_clone) {
+#else
+                        if ((follow_forks && regs.REG_ORIG_ACCUM == SYS_fork)
+                         || (follow_clones && regs.REG_ORIG_ACCUM == SYS_clone)) {
+#endif
 				if (regs.REG_ACCUM > 0)
-					attach(regs.REG_ACCUM);					
+					attach(regs.REG_ACCUM);
 			}
 			if ((regs.REG_ORIG_ACCUM == SYS_read || regs.REG_ORIG_ACCUM == SYS_write) && (regs.REG_PARAM3 == regs.REG_ACCUM)) {
+#ifdef ARM64
+				/* ARM64 doesn't expose orig_x0 to user space,
+				   so retrive orig_x0 from older user pt regs */
+				old_regs = user_pt_regs_search(&user_pt_regs_head, &regs);
+				if (old_regs != NULL) {
+					regs.REG_PARAM1 = old_regs->REG_PARAM1;
+					user_pt_regs_delete(&user_pt_regs_head, old_regs);
+				}
+#endif
 				for (i = 0; i < numfds; i++)
 					if (fds[i] == (int)regs.REG_PARAM1)
 						break;
@@ -266,8 +401,12 @@ int main(int argc, char **argv)
 					if ((int)regs.REG_PARAM1 != lastfd || (int)regs.REG_ORIG_ACCUM != lastdir) {
 						lastfd = regs.REG_PARAM1;
 						lastdir = regs.REG_ORIG_ACCUM;
-						if (!no_headers)
-							printf("\n%sing fd %i:\n", regs.REG_ORIG_ACCUM == SYS_read ? "read" : "writ", lastfd);
+						if (!no_headers) {
+							printf("\n%sing fd %i", regs.REG_ORIG_ACCUM == SYS_read ? "read" : "writ", lastfd);
+							if (tgid)
+								printf(" (thread %d)", pid);
+							printf(":\n");
+						}
 					}
 					if (!remove_duplicates || lastbuf == NULL
 							||  last_buf_size != regs.REG_PARAM3 || 
@@ -310,7 +449,12 @@ int main(int argc, char **argv)
 					fflush(stdout);
 				}
 			}
-
+#ifdef ARM64
+			else if (regs.REG_ORIG_ACCUM == SYS_read || regs.REG_ORIG_ACCUM == SYS_write)
+			{
+				user_pt_regs_insert(&user_pt_regs_head,&regs);
+			}
+#endif
 			ptrace(PTRACE_SYSCALL, pid, 0, 0);
 		}
 	}

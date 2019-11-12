@@ -1,3 +1,22 @@
+Changes in 23.3
+===============
+	* killall: check also truncated 16 char comm names Debian #912748
+	* fuser: Return early if have nulls !18
+	* peekfd: Add support for ARM64 !19
+	* pstree: Add color by age #21
+	* fuser: Use larger inode sizes #16
+Changes in 23.2
+===============
+	* misc: Command names increased from 16 to 64 characters
+	* buildsys: signals.c depends on signames.h !16
+	* docs: Fix fuser.1 groff errors Debian #900225
+	* killall: look at all namespaces by default
+	* killall: Fix -INT option parsing #11
+	* killall: ignore -n 0 #15
+	* killall: another crack at fixing getopt #12 #13
+	* peekfd: Attach to all threads option !15
+	* pslog: Define PATH_MAX if required Debian:#905797
+
 Changes in 23.1
 ===============
 	* killall: Remove debug output Debian: #864753

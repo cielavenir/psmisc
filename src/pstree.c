@@ -2,7 +2,7 @@
  * pstree.c - display process tree
  *
  * Copyright (C) 1993-2002 Werner Almesberger
- * Copyright (C) 2002-2017 Craig Small
+ * Copyright (C) 2002-2019 Craig Small <csmall@dropbear.xyz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <limits.h>
+#include <locale.h>
 
 #include "i18n.h"
 #include "comm.h"
@@ -90,6 +91,12 @@ enum ns_type {
     NUM_NS
 };
 
+enum color_type {
+    COLOR_NONE = 0,
+    COLOR_AGE,
+    NUM_COLOUR
+};
+
 static const char *ns_names[] = {
     [CGROUPNS] = "cgroup",
     [IPCNS] = "ipc",
@@ -110,6 +117,7 @@ typedef struct _proc {
     security_context_t scontext;
     ino_t ns[NUM_NS];
     char flags;
+    double age;
     struct _child *children;
     struct _proc *parent;
     struct _proc *next;
@@ -155,6 +163,17 @@ static struct {
 
 static PROC *list = NULL;
 
+struct age_to_color {
+    unsigned int age_seconds;
+    char *color;
+};
+
+struct age_to_color age_to_color[] = {
+    { 60, "\033[32m"},
+    {3600,   "\033[33m"},
+    {0,	    "\033[31m"}
+    };
+
 /* The buffers will be dynamically increased in size as needed. */
 static int capacity = 0;
 static int *width = NULL;
@@ -169,6 +188,7 @@ static int cur_x = 1;
 static char last_char = 0;
 static int dumped = 0;                /* used by dump_by_user */
 static int charlen = 0;                /* length of character */
+static enum color_type color_highlight = COLOR_NONE;
 
 const char *get_ns_name(enum ns_type id) {
     if (id >= NUM_NS)
@@ -459,6 +479,27 @@ static void out_newline(void)
     cur_x = 1;
 }
 
+static void reset_color(void){
+    if (color_highlight != COLOR_NONE)
+	out_string("\033[0m");
+}
+
+static void print_proc_color(const int process_age) {
+
+    switch(color_highlight) {
+	case COLOR_AGE: {
+	    struct age_to_color *p;
+	    for(p=age_to_color; p->age_seconds != 0; p++)
+		if (process_age < p->age_seconds)
+		    break;
+	    out_string(p->color);
+			}
+	    break;
+	default:
+	    break;
+    }
+
+}
 
 static PROC *find_proc(pid_t pid)
 {
@@ -576,7 +617,8 @@ rename_proc(PROC *this, const char *comm, uid_t uid)
 
 static void
 add_proc(const char *comm, pid_t pid, pid_t ppid, pid_t pgid, uid_t uid,
-         const char *args, int size, char isthread, security_context_t scontext)
+         const char *args, int size, char isthread, security_context_t scontext,
+	 double process_age_sec)
 {
     PROC *this, *parent;
 
@@ -590,6 +632,7 @@ add_proc(const char *comm, pid_t pid, pid_t ppid, pid_t pgid, uid_t uid,
     if (pid == ppid)
         ppid = 0;
     this->pgid = pgid;
+    this->age = process_age_sec;
     if (isthread)
       this->flags |= PFLAG_THREAD;
     if (!(parent = find_proc(ppid))) {
@@ -668,12 +711,14 @@ dump_tree(PROC * current, int level, int rep, int leaf, int last,
                                                                      1] ?
                        sym->vert_2 : sym->empty_2);
         }
+
     if (rep < 2)
         add = 0;
     else {
         add = out_int(rep) + 2;
         out_string("*[");
     }
+    print_proc_color(current->age);
     if ((current->flags & PFLAG_HILIGHT) && (tmp = tgetstr("md", NULL)))
         tputs(tmp, 1, putchar);
     swapped = info = print_args;
@@ -730,6 +775,7 @@ dump_tree(PROC * current, int level, int rep, int leaf, int last,
             }
         }
     }
+    reset_color();
     if (show_scontext || print_args || !current->children)
     {
         while (closing--)
@@ -855,6 +901,35 @@ static void trim_tree_by_parent(PROC * current)
   trim_tree_by_parent(parent);
 }
 
+static double
+uptime()
+{
+    char * savelocale;
+    char buf[2048];
+    FILE* file;
+    if (!(file=fopen( PROC_BASE "/uptime", "r"))) {
+        fprintf(stderr, "pstree: error opening uptime file\n");
+        exit(1);
+    }
+    savelocale = setlocale(LC_NUMERIC,"C");
+    if (fscanf(file, "%2047s", buf) == EOF) perror("uptime");
+    fclose(file);
+    setlocale(LC_NUMERIC,savelocale);
+    return atof(buf);
+}
+
+/* process age from jiffies to seconds via uptime */
+static double process_age(const unsigned long long jf)
+{
+    double age;
+    double sc_clk_tck = sysconf(_SC_CLK_TCK);
+    assert(sc_clk_tck > 0);
+    age = uptime() - jf / sc_clk_tck;
+    if (age < 0L)
+        return 0L;
+    return age;
+}
+
 static char* get_threadname(const pid_t pid, const int tid, const char *comm)
 {
     FILE *file;
@@ -921,6 +996,8 @@ static void read_proc(void)
   int fd, size;
   int empty;
   security_context_t scontext = NULL;
+  unsigned long long proc_stt_jf = 0;
+  double process_age_sec = 0;
 #ifdef WITH_SELINUX
   int selinux_enabled = is_selinux_enabled() > 0;
 #endif                /*WITH_SELINUX */
@@ -973,12 +1050,14 @@ static void read_proc(void)
             /* We now have readbuf with pid and cmd, and tmpptr+2
              * with the rest */
             /*printf("tmpptr: %s\n", tmpptr+2); */
-            if (sscanf(tmpptr + 2, "%*c %d %d", &ppid, &pgid) == 2) {
+            if (sscanf(tmpptr + 2, "%*c %d %d %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %*s %Lu",
+                &ppid, &pgid, &proc_stt_jf) == 3) {
               DIR *taskdir;
               struct dirent *dt;
               char *taskpath;
               int thread;
 
+	      process_age_sec = process_age(proc_stt_jf);
               /* handle process threads */
               if (! hide_threads) {
                 if (! (taskpath = malloc(strlen(path) + 10)))
@@ -994,10 +1073,12 @@ static void read_proc(void)
                         threadname = get_threadname(pid, thread, comm);
                         if (print_args)
                           add_proc(threadname, thread, pid, pgid, st.st_uid,
-                              threadname, strlen (threadname) + 1, 1,scontext);
+                              threadname, strlen (threadname) + 1, 1,scontext,
+			      process_age_sec);
                         else
                           add_proc(threadname, thread, pid, pgid, st.st_uid,
-                              NULL, 0, 1, scontext);
+                              NULL, 0, 1, scontext,
+			      process_age_sec);
                         free(threadname);
                       }
                     }
@@ -1009,7 +1090,8 @@ static void read_proc(void)
 
               /* handle process */
               if (!print_args)
-                add_proc(comm, pid, ppid, pgid, st.st_uid, NULL, 0, 0, scontext);
+                add_proc(comm, pid, ppid, pgid, st.st_uid, NULL, 0, 0, scontext,
+			process_age_sec);
               else {
                 sprintf(path, "%s/%d/cmdline", PROC_BASE, pid);
                 if ((fd = open(path, O_RDONLY)) < 0) {
@@ -1038,7 +1120,7 @@ static void read_proc(void)
                 if (size)
                   buffer[size++] = 0;
                 add_proc(comm, pid, ppid, pgid, st.st_uid,
-                     buffer, size, 0, scontext);
+                     buffer, size, 0, scontext, process_age_sec);
               }
             }
           }
@@ -1085,44 +1167,58 @@ static void fix_orphans(security_context_t scontext)
 
 static void usage(void)
 {
-    fprintf(stderr,
-            _
-            (
 #ifdef WITH_SELINUX
-             "Usage: pstree [-acglpsStuZ] [ -h | -H PID ] [ -n | -N type ]\n"
-#else                                 /*WITH_SELINUX */
-             "Usage: pstree [-acglpsStu] [ -h | -H PID ] [ -n | -N type ]\n"
-#endif                                /*WITH_SELINUX */
+    fprintf(stderr, _(
+             "Usage: pstree [-acglpsStTuZ] [ -h | -H PID ] [ -n | -N type ]\n"
              "              [ -A | -G | -U ] [ PID | USER ]\n"
-             "       pstree -V\n" "Display a tree of processes.\n\n"
+             "   or: pstree -V\n"));
+#else                                 /*WITH_SELINUX */
+    fprintf(stderr, _(
+             "Usage: pstree [-acglpsStTu] [ -h | -H PID ] [ -n | -N type ]\n"
+             "              [ -A | -G | -U ] [ PID | USER ]\n"
+             "   or: pstree -V\n"));
+#endif                                /*WITH_SELINUX */
+    fprintf(stderr, _(
+             "\n"
+             "Display a tree of processes.\n\n"));
+    fprintf(stderr, _(
              "  -a, --arguments     show command line arguments\n"
              "  -A, --ascii         use ASCII line drawing characters\n"
-             "  -c, --compact       don't compact identical subtrees\n"
-             "  -h, --highlight-all highlight current process and its ancestors\n"
-             "  -H PID,\n"
-             "  --highlight-pid=PID highlight this process and its ancestors\n"
+             "  -c, --compact-not   don't compact identical subtrees\n"));
+    fprintf(stderr, _(
+	     "  -C, --color=TYPE    color process by attribute\n"
+	     "                      (age)\n"));
+    fprintf(stderr, _(
              "  -g, --show-pgids    show process group ids; implies -c\n"
-             "  -G, --vt100         use VT100 line drawing characters\n"
-             "  -l, --long          don't truncate long lines\n"
+             "  -G, --vt100         use VT100 line drawing characters\n"));
+    fprintf(stderr, _(
+             "  -h, --highlight-all highlight current process and its ancestors\n"
+             "  -H PID, --highlight-pid=PID\n"
+             "                      highlight this process and its ancestors\n"
+             "  -l, --long          don't truncate long lines\n"));
+    fprintf(stderr, _(
              "  -n, --numeric-sort  sort output by PID\n"
-             "  -N type,\n"
-             "  --ns-sort=type      sort by namespace type (cgroup, ipc, mnt, net, pid,\n"
-             "                                              user, uts)\n"
-             "  -p, --show-pids     show PIDs; implies -c\n"
+             "  -N TYPE, --ns-sort=TYPE\n"
+             "                      sort output by this namespace type\n"
+             "                              (cgroup, ipc, mnt, net, pid, user, uts)\n"
+             "  -p, --show-pids     show PIDs; implies -c\n"));
+    fprintf(stderr, _(
              "  -s, --show-parents  show parents of the selected process\n"
              "  -S, --ns-changes    show namespace transitions\n"
              "  -t, --thread-names  show full thread names\n"
-             "  -T, --hide-threads  hide threads, show only processes\n"
+             "  -T, --hide-threads  hide threads, show only processes\n"));
+    fprintf(stderr, _(
              "  -u, --uid-changes   show uid transitions\n"
              "  -U, --unicode       use UTF-8 (Unicode) line drawing characters\n"
              "  -V, --version       display version information\n"));
 #ifdef WITH_SELINUX
-    fprintf(stderr,
-            _("  -Z, --security-context\n"
-              "                      show SELinux security contexts\n"));
+    fprintf(stderr, _(
+             "  -Z, --security-context\n"
+             "                      show SELinux security contexts\n"));
 #endif                                /*WITH_SELINUX */
-    fprintf(stderr, _("  PID    start at this PID; default is 1 (init)\n"
-                      "  USER   show only trees rooted at processes of this user\n\n"));
+    fprintf(stderr, _("\n"
+              "  PID    start at this PID; default is 1 (init)\n"
+              "  USER   show only trees rooted at processes of this user\n\n"));
     exit(1);
 }
 
@@ -1131,7 +1227,7 @@ void print_version()
     fprintf(stderr, _("pstree (PSmisc) %s\n"), VERSION);
     fprintf(stderr,
             _
-            ("Copyright (C) 1993-2017 Werner Almesberger and Craig Small\n\n"));
+            ("Copyright (C) 1993-2019 Werner Almesberger and Craig Small\n\n"));
     fprintf(stderr,
             _("PSmisc comes with ABSOLUTELY NO WARRANTY.\n"
               "This is free software, and you are welcome to redistribute it under\n"
@@ -1148,13 +1244,14 @@ int main(int argc, char **argv)
     pid_t pid, highlight;
     char termcap_area[1024];
     char *termname, *endptr;
-    int c, pid_set;
+    int c, pid_set = 0;
     enum ns_type nsid = NUM_NS;
 
     struct option options[] = {
         {"arguments", 0, NULL, 'a'},
         {"ascii", 0, NULL, 'A'},
-        {"compact", 0, NULL, 'c'},
+        {"compact-not", 0, NULL, 'c'},
+        {"color", 1, NULL, 'C'},
         {"vt100", 0, NULL, 'G'},
         {"highlight-all", 0, NULL, 'h'},
         {"highlight-pid", 1, NULL, 'H'},
@@ -1217,11 +1314,11 @@ int main(int argc, char **argv)
 
 #ifdef WITH_SELINUX
     while ((c =
-            getopt_long(argc, argv, "aAcGhH:nN:pglsStTuUVZ", options,
+            getopt_long(argc, argv, "aAcC:GhH:nN:pglsStTuUVZ", options,
                         NULL)) != -1)
 #else                                /*WITH_SELINUX */
     while ((c =
-            getopt_long(argc, argv, "aAcGhH:nN:pglsStTuUV", options, NULL)) != -1)
+            getopt_long(argc, argv, "aAcC:GhH:nN:pglsStTuUV", options, NULL)) != -1)
 #endif                                /*WITH_SELINUX */
         switch (c) {
         case 'a':
@@ -1232,6 +1329,13 @@ int main(int argc, char **argv)
             break;
         case 'c':
             compact = 0;
+            break;
+        case 'C':
+	    if (strcasecmp("age", optarg) == 0) {
+		color_highlight = COLOR_AGE;
+	    } else {
+		usage();
+	    }
             break;
         case 'G':
             sym = &sym_vt100;

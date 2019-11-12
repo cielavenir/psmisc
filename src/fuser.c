@@ -4,7 +4,7 @@
  * Based on fuser.c Copyright (C) 1993-2005 Werner Almesberger and Craig Small
  *
  * Completely re-written
- * Copyright (C) 2005-2017 Craig Small
+ * Copyright (C) 2005-2019 Craig Small <csmall@dropbear.xyz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,7 @@
 #include "signals.h"
 #include "i18n.h"
 #include "timeout.h"
+#include "comm.h"
 
 //#define DEBUG 1
 
@@ -186,6 +187,9 @@ scan_procs(struct names *names_head, struct inode_list *ino_head,
 	struct device_list *dev_tmp;
 	pid_t pid, my_pid;
 	uid_t uid;
+
+	if ( (ino_head == NULL) && (dev_head == NULL) )
+		return;
 
 	if ((topproc_dir = opendir("/proc")) == NULL) {
 		fprintf(stderr, _("Cannot open /proc directory: %s\n"),
@@ -396,13 +400,13 @@ add_matched_proc(struct names *name_list, const pid_t pid, const uid_t uid,
 	if ((asprintf(&pathname, "/proc/%d/stat", pid) > 0) &&
 	    ((fp = fopen(pathname, "r")) != NULL) &&
 	    (fscanf(fp, "%*d (%100[^)]", cmdname) == 1))
-		if ((pptr->command = (char *)malloc(MAX_CMDNAME + 1)) != NULL) {
+		if ((pptr->command = (char *)malloc(COMM_LEN + 1)) != NULL) {
 			cmdlen = 0;
-			for (cptr = cmdname; cmdlen < MAX_CMDNAME && *cptr;
+			for (cptr = cmdname; cmdlen < COMM_LEN && *cptr;
 			     cptr++) {
 				if (isprint(*cptr))
 					pptr->command[cmdlen++] = *cptr;
-				else if (cmdlen < (MAX_CMDNAME - 4))
+				else if (cmdlen < (COMM_LEN - 4))
 					cmdlen +=
 					    sprintf(&(pptr->command[cmdlen]),
 						    "\\%03o", *cptr);
@@ -699,7 +703,8 @@ find_net_sockets(struct inode_list **ino_list,
 	FILE *fp;
 	char pathname[200], line[BUFSIZ];
 	unsigned long loc_port, rmt_port;
-	unsigned long rmt_addr, scanned_inode;
+	unsigned long rmt_addr;
+    unsigned long long scanned_inode;
 	ino_t inode;
 	struct ip_connections *conn_tmp;
 
@@ -714,7 +719,7 @@ find_net_sockets(struct inode_list **ino_list,
 	while (fgets(line, BUFSIZ, fp) != NULL) {
 		if (sscanf
 		    (line,
-		     "%*u: %*x:%lx %08lx:%lx %*x %*x:%*x %*x:%*x %*x %*d %*d %lu",
+		     "%*u: %*x:%lx %08lx:%lx %*x %*x:%*x %*x:%*x %*x %*d %*d %llu",
 		     &loc_port, &rmt_addr, &rmt_port, &scanned_inode) != 4)
 			continue;
 #ifdef DEBUG
@@ -765,7 +770,7 @@ find_net6_sockets(struct inode_list **ino_list,
 	unsigned int tmp_addr[4];
 	char rmt_addr6str[INET6_ADDRSTRLEN];
 	struct ip6_connections *conn_tmp;
-	unsigned long scanned_inode;
+	unsigned long long scanned_inode;
 	ino_t inode;
 
 	if (snprintf(pathname, 200, "/proc/net/%s6", protocol) < 0)
@@ -781,7 +786,7 @@ find_net6_sockets(struct inode_list **ino_list,
 	while (fgets(line, BUFSIZ, fp) != NULL) {
 		if (sscanf
 		    (line,
-		     "%*u: %*x:%lx %08x%08x%08x%08x:%lx %*x %*x:%*x %*x:%*x %*x %*d %*d %lu",
+		     "%*u: %*x:%lx %08x%08x%08x%08x:%lx %*x %*x:%*x %*x:%*x %*x %*d %*d %llu",
 		     &loc_port, &(tmp_addr[0]), &(tmp_addr[1]), &(tmp_addr[2]),
 		     &(tmp_addr[3]), &rmt_port, &scanned_inode) != 7)
 			continue;
@@ -1551,17 +1556,22 @@ check_dir(const pid_t pid, const char *dirname, struct device_list *dev_head,
 	struct device_list *dev_tmp;
 	struct unixsocket_list *sock_tmp;
 	struct stat st, lst;
-	char dirpath[MAX_PATHNAME];
-	char filepath[MAX_PATHNAME];
+	char *dirpath;
+	char filepath[PATH_MAX];
 
-	snprintf(dirpath, MAX_PATHNAME, "/proc/%d/%s", pid, dirname);
-	if ((dirp = opendir(dirpath)) == NULL)
+	if (asprintf(&dirpath, "/proc/%d/%s", pid, dirname) < 0)
+        return;
+	if ((dirp = opendir(dirpath)) == NULL) {
+        free(dirpath);
 		return;
+    }
+    free(dirpath);
+
 	while ((direntry = readdir(dirp)) != NULL) {
 		if (direntry->d_name[0] < '0' || direntry->d_name[0] > '9')
 			continue;
 
-		snprintf(filepath, MAX_PATHNAME, "/proc/%d/%s/%s",
+		snprintf(filepath, sizeof filepath - 1, "/proc/%d/%s/%s",
 			 pid, dirname, direntry->d_name);
 
 		if (timeout(thestat, filepath, &st, 5) != 0) {
@@ -1634,7 +1644,7 @@ check_map(const pid_t pid, const char *filename,
 	  struct device_list *dev_head, struct inode_list *ino_head,
 	  const uid_t uid, const char access)
 {
-	char pathname[MAX_PATHNAME];
+	char *pathname;
 	char line[BUFSIZ];
 	struct inode_list *ino_tmp;
 	struct device_list *dev_tmp;
@@ -1643,9 +1653,13 @@ check_map(const pid_t pid, const char *filename,
 	unsigned int tmp_maj, tmp_min;
 	dev_t tmp_device;
 
-	snprintf(pathname, MAX_PATHNAME, "/proc/%d/%s", pid, filename);
-	if ((fp = fopen(pathname, "r")) == NULL)
+	if (asprintf(&pathname, "/proc/%d/%s", pid, filename) < 0)
+        return;
+	if ((fp = fopen(pathname, "r")) == NULL) {
+        free(pathname);
 		return;
+    }
+    free(pathname);
 	while (fgets(line, BUFSIZ, fp)) {
 		if (sscanf(line, "%*s %*s %*s %x:%x %lld",
 			   &tmp_maj, &tmp_min, &tmp_inode) == 3) {
@@ -1668,13 +1682,16 @@ check_map(const pid_t pid, const char *filename,
 
 static uid_t getpiduid(const pid_t pid)
 {
-	char pathname[MAX_PATHNAME];
+	char *pathname;
 	struct stat st;
 
-	if (snprintf(pathname, MAX_PATHNAME, "/proc/%d", pid) < 0)
+	if (asprintf(&pathname, "/proc/%d", pid) < 0)
 		return 0;
-	if (timeout(thestat, pathname, &st, 5) != 0)
+	if (timeout(thestat, pathname, &st, 5) != 0) {
+        free(pathname);
 		return 0;
+    }
+    free(pathname);
 	return st.st_uid;
 }
 
@@ -1686,7 +1703,7 @@ void fill_unix_cache(struct unixsocket_list **unixsocket_head)
 {
 	FILE *fp;
 	char line[BUFSIZ];
-	int scanned_inode;
+	unsigned long long scanned_inode;
 	struct stat st;
 	struct unixsocket_list *newsocket;
 
@@ -1698,7 +1715,7 @@ void fill_unix_cache(struct unixsocket_list **unixsocket_head)
 	while (fgets(line, BUFSIZ, fp) != NULL) {
 		char *path;
 		char *scanned_path = NULL;
-		if (sscanf(line, "%*x: %*x %*x %*x %*x %*d %d %ms",
+		if (sscanf(line, "%*x: %*x %*x %*x %*x %*d %llu %ms",
 			   &scanned_inode, &scanned_path) != 2) {
 			if (scanned_path)
 				free(scanned_path);
@@ -1860,6 +1877,10 @@ scan_knfsd(struct names *names_head, struct inode_list *ino_head,
 	char *find_space;
 	struct stat st;
 
+	if ( (ino_head == NULL) && (dev_head == NULL) )
+		return;
+
+
 	if ((fp = fopen(KNFSD_EXPORTS, "r")) == NULL) {
 #ifdef DEBUG
 		printf("Cannot open %s\n", KNFSD_EXPORTS);
@@ -1906,6 +1927,10 @@ scan_mounts(struct names *names_head, struct inode_list *ino_head,
 	char *find_space;
 	struct stat st;
 
+	if ( (ino_head == NULL) && (dev_head == NULL) )
+		return;
+
+
 	if ((fp = fopen(PROC_MOUNTS, "r")) == NULL) {
 		fprintf(stderr, "Cannot open %s\n", PROC_MOUNTS);
 		return;
@@ -1948,6 +1973,9 @@ scan_swaps(struct names *names_head, struct inode_list *ino_head,
 	char line[BUFSIZ];
 	char *find_space;
 	struct stat st;
+
+	if ( (ino_head == NULL) && (dev_head == NULL) )
+		return;
 
 	if ((fp = fopen(PROC_SWAPS, "r")) == NULL) {
 		/*fprintf(stderr, "Cannot open %s\n", PROC_SWAPS); */
@@ -2007,7 +2035,7 @@ static void clear_mntinfo(void)
 
 static void init_mntinfo(void)
 {
-	char mpoint[PATH_MAX*4 + 1]; // octal escaping takes 4 chars per 1 char
+	char mpoint[PATH_MAX *4 + 1]; // octal escaping takes 4 chars per 1 char
 	int mid, parid, max = 0;
 	uint maj, min;
 	list_t sort;
