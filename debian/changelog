@@ -1,9 +1,9 @@
-psmisc (23.3-1) UNRELEASED; urgency=medium
+psmisc (23.3-1) unstable; urgency=medium
 
   * New upstream release
   * Handle truncated comm names Closes: #912748
 
- -- Craig Small <csmall@debian.org>  Tue, 12 Nov 2019 21:57:06 +1100
+ -- Craig Small <csmall@debian.org>  Tue, 12 Nov 2019 22:16:21 +1100
 
 psmisc (23.2-3) UNRELEASED; urgency=medium
 
