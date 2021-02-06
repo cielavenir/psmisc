@@ -4,7 +4,7 @@
  * Based on fuser.c Copyright (C) 1993-2005 Werner Almesberger and Craig Small
  *
  * Completely re-written
- * Copyright (C) 2005-2019 Craig Small <csmall@dropbear.xyz>
+ * Copyright (C) 2005-2020 Craig Small <csmall@dropbear.xyz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,10 @@
 #define MAXSYMLINKS SYMLINK_MAX
 #endif
 
+#ifdef ENABLE_NLS
+#include <locale.h>
+#endif
+
 #include "fuser.h"
 #include "signals.h"
 #include "i18n.h"
@@ -63,6 +67,10 @@
 #include "comm.h"
 
 //#define DEBUG 1
+
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif /* PATH_MAX */
 
 #define NAME_FIELD 20		/* space reserved for file name */
 /* Function defines */
@@ -168,7 +176,7 @@ void print_version()
 	fprintf(stderr, _("fuser (PSmisc) %s\n"), VERSION);
 	fprintf(stderr,
 		_
-		("Copyright (C) 1993-2017 Werner Almesberger and Craig Small\n\n"));
+		("Copyright (C) 1993-2020 Werner Almesberger and Craig Small\n\n"));
 	fprintf(stderr,
 		_("PSmisc comes with ABSOLUTELY NO WARRANTY.\n"
 		  "This is free software, and you are welcome to redistribute it under\n"
@@ -605,8 +613,10 @@ int parse_inet(struct names *this_name, struct ip_connections **ip_list)
 		     getaddrinfo(NULL, lcl_port_str, &hints, &res)) != 0) {
 			fprintf(stderr, _("Cannot resolve local port %s: %s\n"),
 				lcl_port_str, gai_strerror(errcode));
+			free(lcl_port_str);
 			return -1;
 		}
+		free(lcl_port_str);
 		if (res == NULL)
 			return -1;
 		switch (res->ai_family) {
@@ -624,12 +634,10 @@ int parse_inet(struct names *this_name, struct ip_connections **ip_list)
 			fprintf(stderr, _("Unknown local port AF %d\n"),
 				res->ai_family);
 			freeaddrinfo(res);
-            free(lcl_port_str);
 			return -1;
 		}
 		freeaddrinfo(res);
 	}
-	free(lcl_port_str);
 	res = NULL;
 	if (rmt_addr_str == NULL && rmt_port_str == NULL) {
 		add_ip_conn(ip_list, protocol, this_name, ntohs(lcl_port), 0,
@@ -1531,12 +1539,12 @@ print_matches(struct names *names_head, const opt_type opts,
 
 static struct stat *get_pidstat(const pid_t pid, const char *filename)
 {
-	char pathname[256];
+	char pathname[PATH_MAX];
 	struct stat *st;
 
 	if ((st = (struct stat *)malloc(sizeof(struct stat))) == NULL)
 		return NULL;
-	snprintf(pathname, 256, "/proc/%d/%s", pid, filename);
+	snprintf(pathname, PATH_MAX-1, "/proc/%d/%s", pid, filename);
 	if (timeout(thestat, pathname, st, 5) != 0) {
 		free(st);
 		return NULL;
@@ -1558,6 +1566,7 @@ check_dir(const pid_t pid, const char *dirname, struct device_list *dev_head,
 	struct stat st, lst;
 	char *dirpath;
 	char filepath[PATH_MAX];
+	char real_filepath[PATH_MAX];
 
 	if (asprintf(&dirpath, "/proc/%d/%s", pid, dirname) < 0)
         return;
@@ -1596,6 +1605,17 @@ check_dir(const pid_t pid, const char *dirname, struct device_list *dev_head,
 			     dev_tmp = dev_tmp->next) {
 				if (thedev != dev_tmp->device)
 					continue;
+
+				/* check the paths match if it is not a block device */
+				if (! S_ISBLK(dev_tmp->name->st.st_mode)) {
+				    if (readlink(filepath, real_filepath, PATH_MAX-1) < 0) {
+					if (strncmp(dev_tmp->name->filename, filepath, strlen(dev_tmp->name->filename)) != 0)
+					    continue;
+				    } else {
+					if (strncmp(dev_tmp->name->filename, real_filepath, strlen(dev_tmp->name->filename)) != 0)
+					    continue;
+				    }
+				}
 				if (access == ACCESS_FILE
 				    && (lstat(filepath, &lst) == 0)
 				    && (lst.st_mode & S_IWUSR)) {
