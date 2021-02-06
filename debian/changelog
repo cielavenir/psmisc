@@ -1,10 +1,10 @@
-psmisc (23.4-1) UNRELEASED; urgency=medium
+psmisc (23.4-1) unstable; urgency=medium
 
   * New upstream release
   * Update to standards 4.5.1 no change
   * Update to debhelper v13
 
- -- Craig Small <csmall@debian.org>  Sat, 06 Feb 2021 10:23:05 +1100
+ -- Craig Small <csmall@debian.org>  Sat, 06 Feb 2021 11:21:39 +1100
 
 psmisc (23.3-1) unstable; urgency=medium
 
