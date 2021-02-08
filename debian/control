@@ -13,6 +13,8 @@ Package: psmisc
 Architecture: any
 Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Breaks: manpages-de (<< 4.9.1-1)
+Replaces: manpages-de (<< 4.9.1-1)
 Description: utilities that use the proc file system
  This package contains miscellaneous utilities that use the proc FS:
  .
