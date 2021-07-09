@@ -524,4 +524,3 @@ psmisc (16-1) unstable; urgency=low
   * procps upstream source split this off at version 1.2
 
  -- Craig Small <csmall@debian.org>  Fri,  2 Jan 1998 11:12:00 +1100
-

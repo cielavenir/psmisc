@@ -1,0 +1,14 @@
+--- a/doc/fuser.1
++++ b/doc/fuser.1
+@@ -289,4 +289,3 @@
+ .BR pkill (1),
+ .BR ps (1),
+ .BR kill (2).
+-.\{{{}}}
+--- a/doc/killall.1
++++ b/doc/killall.1
+@@ -176,4 +176,3 @@
+ .BR ps (1),
+ .BR kill (2),
+ .BR regex (3).
+-.\{{{}}}
