@@ -1,3 +1,12 @@
+psmisc (23.2-1+deb10u1) buster; urgency=medium
+
+  * Team upload.
+  * Fix regression in killall not matching process with names bigger than 15
+    characters by backporting the upstream patch that restores the check
+    that works on kernels that have TASK_COMM_LEN set to 16. Closes: #912748
+
+ -- Raphaël Hertzog <raphael@freexian.com>  Mon, 16 Aug 2021 11:17:53 +0200
+
 psmisc (23.2-1) unstable; urgency=medium
 
   * New upstream release
