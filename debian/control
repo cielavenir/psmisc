@@ -5,7 +5,7 @@ Maintainer: Craig Small <csmall@debian.org>
 Build-Depends: debhelper-compat (= 13),
                dejagnu, gettext,
                libncurses-dev, gettext, libselinux1-dev [linux-any]
-Standards-Version: 4.5.1
+Standards-Version: 4.6.0
 Vcs-Browser: https://salsa.debian.org/debian/psmisc
 Vcs-Git: https://salsa.debian.org/debian/psmisc.git
 Homepage: http://psmisc.sf.net/
