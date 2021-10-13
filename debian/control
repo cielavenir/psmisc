@@ -1,7 +1,7 @@
 Source: psmisc
 Section: admin
 Priority: optional
-Maintainer:  Craig Small <csmall@debian.org>
+Maintainer: Craig Small <csmall@debian.org>
 Build-Depends: debhelper-compat (= 13),
                dejagnu, gettext,
                libncurses-dev, gettext, libselinux1-dev [linux-any]
