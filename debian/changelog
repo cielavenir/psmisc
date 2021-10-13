@@ -3,6 +3,8 @@ psmisc (23.4-3) UNRELEASED; urgency=medium
   * Trim trailing whitespace.
   * Strip unusual field spacing from debian/control.
   * Set Homepage field in Source rather than Binary package.
+  * Set upstream metadata fields: Bug-Database, Bug-Submit, Repository,
+    Repository-Browse.
 
  -- Debian Janitor <janitor@jelmer.uk>  Wed, 13 Oct 2021 00:46:43 -0000
 
