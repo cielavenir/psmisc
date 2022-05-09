@@ -2,7 +2,7 @@
  * pstree.c - display process tree
  *
  * Copyright (C) 1993-2002 Werner Almesberger
- * Copyright (C) 2002-2019 Craig Small <csmall@dropbear.xyz>
+ * Copyright (C) 2002-2021 Craig Small <csmall@dropbear.xyz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@
 #include "comm.h"
 
 #ifdef WITH_SELINUX
+#include <dlfcn.h>
 #include <selinux/selinux.h>
 #else
 typedef void* security_context_t; /* DUMMY to remove most ifdefs */
@@ -88,6 +89,7 @@ enum ns_type {
     PIDNS,
     USERNS,
     UTSNS,
+    TIMENS,
     NUM_NS
 };
 
@@ -105,6 +107,7 @@ static const char *ns_names[] = {
     [PIDNS] = "pid",
     [USERNS] = "user",
     [UTSNS] = "uts",
+    [TIMENS] = "time",
 };
 
 typedef struct _proc {
@@ -114,7 +117,6 @@ typedef struct _proc {
     pid_t pid;
     pid_t pgid;
     uid_t uid;
-    security_context_t scontext;
     ino_t ns[NUM_NS];
     char flags;
     double age;
@@ -309,7 +311,7 @@ static void sort_by_namespace(PROC *r, enum ns_type id, struct ns_entry **root)
     }
 }
 
-static void fix_orphans(security_context_t scontext);
+static void fix_orphans(void);
 
 /*
  * Determine the correct output width, what we use is:
@@ -463,11 +465,62 @@ static int out_int(int x)
     return digits;
 }
 
-static void out_scontext(security_context_t scontext)
+/*
+ * Print the security context of the current process. This is largely lifted
+ * from pr_context from procps ps/output.c
+ */
+static void out_scontext(const PROC *current)
 {
+    static void (*my_freecon)(char*) = 0;
+    static int (*my_getpidcon)(pid_t pid, char **context) = 0;
+    static int selinux_enabled = 0;
+    char *context;
+
+#ifdef WITH_SELINUX
+    static int (*my_is_selinux_enabled)(void) = 0;
+    static int tried_load = 0;
+
+    if(!my_getpidcon && !tried_load){
+    void *handle = dlopen("libselinux.so.1", RTLD_NOW);
+    if(handle) {
+	my_freecon = dlsym(handle, "freecon");
+	if(dlerror())
+	    my_freecon = 0;
+	dlerror();
+	my_getpidcon = dlsym(handle, "getpidcon");
+	if(dlerror())
+	    my_getpidcon = 0;
+	my_is_selinux_enabled = dlsym(handle, "is_selinux_enabled");
+	if(dlerror())
+	    my_is_selinux_enabled = 0;
+	else
+	    selinux_enabled = my_is_selinux_enabled();
+    }
+    tried_load++;
+    }
+#endif /* WITH_SELINUX */
+
     out_string("`");
-    out_string(scontext);
-    out_string("'");
+    
+    if (my_getpidcon && selinux_enabled && !my_getpidcon(current->pid, &context)) {
+	out_string(context);
+	my_freecon(context);
+    } else {
+        FILE *file;
+        char path[50];
+        char readbuf[BUFSIZ+1];
+	int num_read;
+        snprintf(path, sizeof path, "/proc/%d/attr/current", current->pid);
+        if ( (file = fopen(path, "r")) != NULL) {
+            if (fgets(readbuf, BUFSIZ, file) != NULL) {
+                num_read = strlen(readbuf);
+                readbuf[num_read-1] = '\0';
+                out_string(readbuf);
+            }
+            fclose(file);
+        }
+        out_string("'");
+    }
 }
 
 static void out_newline(void)
@@ -479,26 +532,28 @@ static void out_newline(void)
     cur_x = 1;
 }
 
-static void reset_color(void){
-    if (color_highlight != COLOR_NONE)
-	out_string("\033[0m");
+static void reset_color(void)
+{
+    if (color_highlight != COLOR_NONE) {
+        char *str = "\033[0m";
+        while (*str) putchar(*str++);
+    }
 }
 
-static void print_proc_color(const int process_age) {
-
+static void print_proc_color(const int process_age)
+{
+    struct age_to_color *p;
     switch(color_highlight) {
-	case COLOR_AGE: {
-	    struct age_to_color *p;
-	    for(p=age_to_color; p->age_seconds != 0; p++)
-		if (process_age < p->age_seconds)
-		    break;
-	    out_string(p->color);
-			}
-	    break;
-	default:
-	    break;
-    }
+    case COLOR_AGE:
+        for(p=age_to_color; p->age_seconds != 0; p++)
+        if (process_age < p->age_seconds) break;
 
+        char *str = p->color;
+        while (*str) putchar(*str++);
+        break;
+    default:
+        break;
+    }
 }
 
 static PROC *find_proc(pid_t pid)
@@ -512,8 +567,7 @@ static PROC *find_proc(pid_t pid)
     return NULL;
 }
 
-static PROC *new_proc(const char *comm, pid_t pid, uid_t uid,
-                      security_context_t scontext)
+static PROC *new_proc(const char *comm, pid_t pid, uid_t uid)
 {
     PROC *new;
 
@@ -521,6 +575,7 @@ static PROC *new_proc(const char *comm, pid_t pid, uid_t uid,
         perror("malloc");
         exit(1);
     }
+
     strncpy(new->comm, comm, COMM_LEN+2);
     new->comm[COMM_LEN+1] = '\0';     /* make sure nul terminated*/
     new->pid = pid;
@@ -528,7 +583,6 @@ static PROC *new_proc(const char *comm, pid_t pid, uid_t uid,
     new->flags = 0;
     new->argc = 0;
     new->argv = NULL;
-    new->scontext = scontext;
     new->children = NULL;
     new->parent = NULL;
     new->next = list;
@@ -571,8 +625,12 @@ static void set_args(PROC * this, const char *args, int size)
     }
     this->argc = 0;
     for (i = 0; i < size - 1; i++)
-        if (!args[i])
+        if (!args[i]) {
             this->argc++;
+            /* now skip consecutive NUL */
+            while(!args[i] && (i < size -1 ))
+                i++;
+        }
     if (!this->argc)
         return;
     if (!(this->argv = malloc(sizeof(char *) * this->argc))) {
@@ -617,13 +675,12 @@ rename_proc(PROC *this, const char *comm, uid_t uid)
 
 static void
 add_proc(const char *comm, pid_t pid, pid_t ppid, pid_t pgid, uid_t uid,
-         const char *args, int size, char isthread, security_context_t scontext,
-	 double process_age_sec)
+         const char *args, int size, char isthread, double process_age_sec)
 {
     PROC *this, *parent;
 
     if (!(this = find_proc(pid)))
-        this = new_proc(comm, pid, uid, scontext);
+        this = new_proc(comm, pid, uid);
     else {
         rename_proc(this, comm, uid);
     }
@@ -636,7 +693,7 @@ add_proc(const char *comm, pid_t pid, pid_t ppid, pid_t pgid, uid_t uid,
     if (isthread)
       this->flags |= PFLAG_THREAD;
     if (!(parent = find_proc(ppid))) {
-        parent = new_proc("?", ppid, 0, scontext);
+        parent = new_proc("?", ppid, 0);
     }
     if (pid != 0) {
       add_child(parent, this);
@@ -753,7 +810,7 @@ dump_tree(PROC * current, int level, int rep, int leaf, int last,
     }
     if (show_scontext) {
         out_char(info++ ? ',' : '(');
-        out_scontext(current->scontext);
+        out_scontext(current);
     }
     if ((swapped && print_args && current->argc < 0) || (!swapped && info))
         out_char(')');
@@ -935,8 +992,7 @@ static char* get_threadname(const pid_t pid, const int tid, const char *comm)
     FILE *file;
     char *thread_comm, *endcomm, *threadname;
     char *path = NULL;
-    size_t len = 0;
-    int nbytes;
+    int len, nbytes;
     char readbuf[BUFSIZ + 1];
 
     if (! (threadname = malloc(COMM_LEN + 2 + 1))) {
@@ -995,12 +1051,8 @@ static void read_proc(void)
   pid_t pid, ppid, pgid;
   int fd, size;
   int empty;
-  security_context_t scontext = NULL;
   unsigned long long proc_stt_jf = 0;
   double process_age_sec = 0;
-#ifdef WITH_SELINUX
-  int selinux_enabled = is_selinux_enabled() > 0;
-#endif                /*WITH_SELINUX */
 
   if (trunc)
     buffer_size = output_width + 1;
@@ -1027,16 +1079,10 @@ static void read_proc(void)
       if ((file = fopen(path, "r")) != NULL) {
         empty = 0;
         sprintf(path, "%s/%d", PROC_BASE, pid);
-#ifdef WITH_SELINUX
-        if (selinux_enabled)
-          if (getpidcon(pid, &scontext) < 0) {
-            perror(path);
-            exit(1);
-          }
-#endif                /*WITH_SELINUX */
         if (stat(path, &st) < 0) {
-          perror(path);
-          exit(1);
+          (void) fclose(file);
+          free(path);
+          continue;
         }
         size = fread(readbuf, 1, BUFSIZ, file);
         if (ferror(file) == 0) {
@@ -1073,11 +1119,11 @@ static void read_proc(void)
                         threadname = get_threadname(pid, thread, comm);
                         if (print_args)
                           add_proc(threadname, thread, pid, pgid, st.st_uid,
-                              threadname, strlen (threadname) + 1, 1,scontext,
+                              threadname, strlen (threadname) + 1, 1,
 			      process_age_sec);
                         else
                           add_proc(threadname, thread, pid, pgid, st.st_uid,
-                              NULL, 0, 1, scontext,
+                              NULL, 0, 1, 
 			      process_age_sec);
                         free(threadname);
                       }
@@ -1090,7 +1136,7 @@ static void read_proc(void)
 
               /* handle process */
               if (!print_args)
-                add_proc(comm, pid, ppid, pgid, st.st_uid, NULL, 0, 0, scontext,
+                add_proc(comm, pid, ppid, pgid, st.st_uid, NULL, 0, 0,
 			process_age_sec);
               else {
                 sprintf(path, "%s/%d/cmdline", PROC_BASE, pid);
@@ -1120,7 +1166,7 @@ static void read_proc(void)
                 if (size)
                   buffer[size++] = 0;
                 add_proc(comm, pid, ppid, pgid, st.st_uid,
-                     buffer, size, 0, scontext, process_age_sec);
+                     buffer, size, 0, process_age_sec);
               }
             }
           }
@@ -1131,7 +1177,7 @@ static void read_proc(void)
     }
   }
   (void) closedir(dir);
-  fix_orphans(scontext);
+  fix_orphans();
   if (print_args)
     free(buffer);
   if (empty) {
@@ -1147,12 +1193,12 @@ static void read_proc(void)
  * As we cannot be sure if it is just the root pid or others missing
  * we gather the lot
  */
-static void fix_orphans(security_context_t scontext)
+static void fix_orphans(void)
 {
     PROC *root, *walk;
 
     if (!(root = find_proc(ROOT_PID))) {
-        root = new_proc("?", ROOT_PID, 0, scontext);
+        root = new_proc("?", ROOT_PID, 0);
     }
     for (walk = list; walk; walk = walk->next) {
         if (walk->pid == 1 || walk->pid == 0)
@@ -1167,17 +1213,10 @@ static void fix_orphans(security_context_t scontext)
 
 static void usage(void)
 {
-#ifdef WITH_SELINUX
     fprintf(stderr, _(
              "Usage: pstree [-acglpsStTuZ] [ -h | -H PID ] [ -n | -N type ]\n"
              "              [ -A | -G | -U ] [ PID | USER ]\n"
              "   or: pstree -V\n"));
-#else                                 /*WITH_SELINUX */
-    fprintf(stderr, _(
-             "Usage: pstree [-acglpsStTu] [ -h | -H PID ] [ -n | -N type ]\n"
-             "              [ -A | -G | -U ] [ PID | USER ]\n"
-             "   or: pstree -V\n"));
-#endif                                /*WITH_SELINUX */
     fprintf(stderr, _(
              "\n"
              "Display a tree of processes.\n\n"));
@@ -1200,7 +1239,7 @@ static void usage(void)
              "  -n, --numeric-sort  sort output by PID\n"
              "  -N TYPE, --ns-sort=TYPE\n"
              "                      sort output by this namespace type\n"
-             "                              (cgroup, ipc, mnt, net, pid, user, uts)\n"
+             "                              (cgroup, ipc, mnt, net, pid, time, user, uts)\n"
              "  -p, --show-pids     show PIDs; implies -c\n"));
     fprintf(stderr, _(
              "  -s, --show-parents  show parents of the selected process\n"
@@ -1211,11 +1250,9 @@ static void usage(void)
              "  -u, --uid-changes   show uid transitions\n"
              "  -U, --unicode       use UTF-8 (Unicode) line drawing characters\n"
              "  -V, --version       display version information\n"));
-#ifdef WITH_SELINUX
     fprintf(stderr, _(
              "  -Z, --security-context\n"
-             "                      show SELinux security contexts\n"));
-#endif                                /*WITH_SELINUX */
+             "                      show security attributes\n"));
     fprintf(stderr, _("\n"
               "  PID    start at this PID; default is 1 (init)\n"
               "  USER   show only trees rooted at processes of this user\n\n"));
@@ -1227,7 +1264,7 @@ void print_version()
     fprintf(stderr, _("pstree (PSmisc) %s\n"), VERSION);
     fprintf(stderr,
             _
-            ("Copyright (C) 1993-2019 Werner Almesberger and Craig Small\n\n"));
+            ("Copyright (C) 1993-2021 Werner Almesberger and Craig Small\n\n"));
     fprintf(stderr,
             _("PSmisc comes with ABSOLUTELY NO WARRANTY.\n"
               "This is free software, and you are welcome to redistribute it under\n"
@@ -1267,9 +1304,7 @@ int main(int argc, char **argv)
         {"uid-changes", 0, NULL, 'u'},
         {"unicode", 0, NULL, 'U'},
         {"version", 0, NULL, 'V'},
-#ifdef WITH_SELINUX
         {"security-context", 0, NULL, 'Z'},
-#endif                                /*WITH_SELINUX */
         { 0, 0, 0, 0 }
     };
 
@@ -1312,14 +1347,9 @@ int main(int argc, char **argv)
         sym = &sym_ascii;
     }
 
-#ifdef WITH_SELINUX
     while ((c =
             getopt_long(argc, argv, "aAcC:GhH:nN:pglsStTuUVZ", options,
                         NULL)) != -1)
-#else                                /*WITH_SELINUX */
-    while ((c =
-            getopt_long(argc, argv, "aAcC:GhH:nN:pglsStTuUV", options, NULL)) != -1)
-#endif                                /*WITH_SELINUX */
         switch (c) {
         case 'a':
             print_args = 1;
@@ -1384,7 +1414,6 @@ int main(int argc, char **argv)
             break;
         case 'g':
             pgids = 1;
-            compact = 0;
             break;
         case 's':
             show_parents = 1;
@@ -1407,15 +1436,9 @@ int main(int argc, char **argv)
         case 'V':
             print_version();
             return 0;
-#ifdef WITH_SELINUX
         case 'Z':
-            if (is_selinux_enabled() > 0)
-                show_scontext = 1;
-            else
-                fprintf(stderr,
-                        "Warning: -Z ignored. Requires anx SELinux enabled kernel\n");
+            show_scontext = 1;
             break;
-#endif                                /*WITH_SELINUX */
         default:
             usage();
         }
@@ -1439,7 +1462,13 @@ int main(int argc, char **argv)
         current->flags |= PFLAG_HILIGHT;
 
     if(show_parents && pid_set == 1) {
-      trim_tree_by_parent(find_proc(pid));
+      PROC *child_proc;
+
+      if ( (child_proc = find_proc(pid)) == NULL) {
+	      fprintf(stderr, _("Process %d not found.\n"), pid);
+	      return 1;
+      }
+      trim_tree_by_parent(child_proc);
 
       pid = ROOT_PID;
     }

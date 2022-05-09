@@ -6,4 +6,5 @@ src/pslog.c
 src/pstree.c
 src/signals.c
 src/signames.c
+src/socket_test.c
 src/timeout.c

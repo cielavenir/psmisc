@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: psmisc 22.2pre1\n"
-"Report-Msgid-Bugs-To: csmall@enc.com.au\n"
-"POT-Creation-Date: 2019-10-24 21:25+1100\n"
+"Report-Msgid-Bugs-To: csmall@dropbear.xyz\n"
+"POT-Creation-Date: 2022-05-09 20:49+1000\n"
 "PO-Revision-Date: 2006-03-20 10:31+0900\n"
 "Last-Translator: GOTO Masanori <gotom@debian.or.jp>\n"
 "Language-Team: Japanese <translation-team-ja@lists.sourceforge.net>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 
-#: src/fuser.c:137
+#: src/fuser.c:152
 #, fuzzy, c-format
 msgid ""
 "Usage: fuser [-fIMuvw] [-a|-s] [-4|-6] [-c|-m|-n SPACE]\n"
@@ -72,14 +72,14 @@ msgstr ""
 "  udp/tcp 名前: [ローカルポート][,[リモートホスト][,[リモートポート]]]\n"
 "\n"
 
-#: src/fuser.c:158
+#: src/fuser.c:173
 #, c-format
 msgid ""
 "  -4,--ipv4             search IPv4 sockets only\n"
 "  -6,--ipv6             search IPv6 sockets only\n"
 msgstr ""
 
-#: src/fuser.c:161
+#: src/fuser.c:176
 #, c-format
 msgid ""
 "  -                     reset options\n"
@@ -88,22 +88,22 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/fuser.c:168
+#: src/fuser.c:183
 #, c-format
 msgid "fuser (PSmisc) %s\n"
 msgstr "fuser (PSmisc) %s\n"
 
-#: src/fuser.c:171 src/killall.c:807
+#: src/fuser.c:185 src/killall.c:865
 #, fuzzy, c-format
 msgid ""
-"Copyright (C) 1993-2017 Werner Almesberger and Craig Small\n"
+"Copyright (C) 1993-2022 Werner Almesberger and Craig Small\n"
 "\n"
 msgstr ""
 "Copyright (C) 1993-2005 Werner Almesberger and Craig Small\n"
 "\n"
 
-#: src/fuser.c:173 src/killall.c:809 src/peekfd.c:195 src/prtstat.c:68
-#: src/pstree.c:1232
+#: src/fuser.c:187 src/killall.c:867 src/peekfd.c:195 src/prtstat.c:68
+#: src/pstree.c:1269
 #, c-format
 msgid ""
 "PSmisc comes with ABSOLUTELY NO WARRANTY.\n"
@@ -116,169 +116,159 @@ msgstr ""
 "再配布を自由に行ってかまいません。\n"
 "これらについてより詳細な情報はCOPYINGファイルをご覧下さい。\n"
 
-#: src/fuser.c:195
+#: src/fuser.c:209
 #, c-format
 msgid "Cannot open /proc directory: %s\n"
 msgstr "/proc ディレクトリを開けません: %s\n"
 
-#: src/fuser.c:386 src/fuser.c:439 src/fuser.c:2058
+#: src/fuser.c:411 src/fuser.c:470 src/fuser.c:2190
 #, c-format
 msgid "Cannot allocate memory for matched proc: %s\n"
 msgstr "一致したプロセスに対するメモリが獲得できません: %s\n"
 
-#: src/fuser.c:466
+#: src/fuser.c:501
 #, c-format
 msgid "Specified filename %s does not exist.\n"
 msgstr ""
 
-#: src/fuser.c:469
+#: src/fuser.c:504
 #, c-format
 msgid "Cannot stat %s: %s\n"
 msgstr "%s をstatできません: %s\n"
 
-#: src/fuser.c:606
+#: src/fuser.c:656
 #, c-format
 msgid "Cannot resolve local port %s: %s\n"
 msgstr "ローカルポート %s を解決できません: %s\n"
 
-#: src/fuser.c:624
+#: src/fuser.c:677
 #, c-format
 msgid "Unknown local port AF %d\n"
 msgstr "未知のローカルポート AF %d\n"
 
-#: src/fuser.c:715
+#: src/fuser.c:760
 #, c-format
 msgid "Cannot open protocol file \"%s\": %s\n"
 msgstr "プロトコルファイル \"%s\" が開けません: %s\n"
 
-#: src/fuser.c:1018
+#: src/fuser.c:1086
 #, c-format
 msgid "Specified filename %s is not a mountpoint.\n"
 msgstr ""
 
-#: src/fuser.c:1110
+#: src/fuser.c:1182
 #, c-format
 msgid "%s: Invalid option %s\n"
 msgstr ""
 
-#: src/fuser.c:1164
+#: src/fuser.c:1239
 msgid "Namespace option requires an argument."
 msgstr "名前空間オプションは引数が必要です"
 
-#: src/fuser.c:1181
+#: src/fuser.c:1251
 msgid "Invalid namespace name"
 msgstr "不正な名前空間名"
 
-#: src/fuser.c:1246
+#: src/fuser.c:1318
 #, fuzzy
 msgid "You can only use files with mountpoint options"
 msgstr ""
 "マウントポイントオプション(-mまたは-c)と一緒に使えるのはfile名前空間のみです"
 
-#: src/fuser.c:1296
+#: src/fuser.c:1365
 msgid "No process specification given"
 msgstr "引数が与えられていません"
 
-#: src/fuser.c:1311
+#: src/fuser.c:1382
 msgid "all option cannot be used with silent option."
 msgstr "-aオプションは-sオプションと一緒には使用できません"
 
-#: src/fuser.c:1316
+#: src/fuser.c:1387
 msgid "You cannot search for only IPv4 and only IPv6 sockets at the same time"
 msgstr "-4オプションと-6オプションは同時に指定できません"
 
-#: src/fuser.c:1405
+#: src/fuser.c:1483
 #, fuzzy, c-format
 msgid "%*s USER        PID ACCESS COMMAND\n"
 msgstr ""
 "\n"
 "%*s ユーザ     PID アクセス コマンド\n"
 
-#: src/fuser.c:1438 src/fuser.c:1495
+#: src/fuser.c:1517 src/fuser.c:1563
 msgid "(unknown)"
 msgstr "(不明)"
 
-#: src/fuser.c:1579 src/fuser.c:1618
+#: src/fuser.c:1659 src/fuser.c:1715
 #, c-format
 msgid "Cannot stat file %s: %s\n"
 msgstr "ファイルをstatできません %s: %s\n"
 
-#: src/fuser.c:1711
+#: src/fuser.c:1812
 #, c-format
 msgid "Cannot open /proc/net/unix: %s\n"
 msgstr "/proc/net/unix が開けません: %s\n"
 
-#: src/fuser.c:1806
+#: src/fuser.c:1918
 #, c-format
 msgid "Kill process %d ? (y/N) "
 msgstr "プロセス %d をkillしますか? (y/N) "
 
-#: src/fuser.c:1842
+#: src/fuser.c:1959
 #, c-format
 msgid "Could not kill process %d: %s\n"
 msgstr "プロセス %d を kill できません: %s\n"
 
-#: src/fuser.c:1857
+#: src/fuser.c:1975
 #, c-format
 msgid "Cannot open a network socket.\n"
 msgstr "ネットワークソケットが開けません.\n"
 
-#: src/fuser.c:1861
+#: src/fuser.c:1980
 #, c-format
 msgid "Cannot find socket's device number.\n"
 msgstr "ソケットのデバイス番号が見つかりません.\n"
 
-#: src/killall.c:108
+#: src/killall.c:111
 #, c-format
 msgid "Kill %s(%s%d) ? (y/N) "
 msgstr "%s(%s%d) をkillしますか? (y/N)"
 
-#: src/killall.c:111
+#: src/killall.c:114
 #, fuzzy, c-format
 msgid "Signal %s(%s%d) ? (y/N) "
 msgstr "%s(%s%d) をkillしますか? (y/N)"
 
-#: src/killall.c:254
+#: src/killall.c:262
 #, fuzzy, c-format
 msgid "killall: Cannot get UID from process status\n"
 msgstr "プロセスの現在状態からUIDを取得できませんでした\n"
 
-#: src/killall.c:289
+#: src/killall.c:363
 #, fuzzy, c-format
 msgid "killall: Bad regular expression: %s\n"
 msgstr "不正な正規表現: %s\n"
 
-#: src/killall.c:445
+#: src/killall.c:520
 #, fuzzy, c-format
 msgid "killall: skipping partial match %s(%d)\n"
 msgstr "部分一致をスキップ %s(%d)\n"
 
-#: src/killall.c:706
+#: src/killall.c:770
 #, c-format
 msgid "Killed %s(%s%d) with signal %d\n"
 msgstr "%s(%s%d) をシグナル %d でkillしました\n"
 
-#: src/killall.c:725
+#: src/killall.c:791
 #, fuzzy, c-format
 msgid "%s: no process found\n"
 msgstr "%s: どのプロセスもkillされませんでした\n"
 
-#: src/killall.c:767
-#, fuzzy, c-format
-msgid ""
-"Usage: killall [ -Z CONTEXT ] [ -u USER ] [ -y TIME ] [ -o TIME ] [ -"
-"eIgiqrvw ]\n"
-"               [ -s SIGNAL | -SIGNAL ] NAME...\n"
-msgstr ""
-"使用法: killall [-Z CONTEXT] [-u ユーザー] [ -eIgiqrvw ] [ -シグナル ] 名"
-"前...\n"
-
-#: src/killall.c:771
+#: src/killall.c:832
 #, c-format
 msgid "Usage: killall [OPTION]... [--] NAME...\n"
 msgstr "使用法: killall [オプション]... [--] 名前...\n"
 
-#: src/killall.c:774
+#: src/killall.c:834
 #, fuzzy, c-format
 msgid ""
 "       killall -l, --list\n"
@@ -317,7 +307,7 @@ msgstr ""
 "  -V,--version          バージョン情報を表示する\n"
 "  -w,--wait             killしたプロセスが終了するまで待つ\n"
 
-#: src/killall.c:795
+#: src/killall.c:854
 #, c-format
 msgid ""
 "  -Z,--context REGEXP kill only process(es) having context\n"
@@ -326,31 +316,31 @@ msgstr ""
 "  -Z,--context 正規表現 コンテキストを持つプロセスのみkillする\n"
 "                        (他の引数よりも前に指定されていなければならない)\n"
 
-#: src/killall.c:900 src/killall.c:906
+#: src/killall.c:950 src/killall.c:956
 msgid "Invalid time format"
 msgstr ""
 
-#: src/killall.c:926
+#: src/killall.c:976
 #, c-format
 msgid "Cannot find user %s\n"
 msgstr "ユーザ %s を発見できません\n"
 
-#: src/killall.c:961
+#: src/killall.c:1011
 #, fuzzy
 msgid "Invalid namespace PID"
 msgstr "不正な名前空間名"
 
-#: src/killall.c:970
+#: src/killall.c:1018
 #, c-format
 msgid "Bad regular expression: %s\n"
 msgstr "不正な正規表現: %s\n"
 
-#: src/killall.c:1011
+#: src/killall.c:1052
 #, fuzzy, c-format
 msgid "killall: Maximum number of names is %d\n"
 msgstr "名前の最大指定可能数は %d\n"
 
-#: src/killall.c:1016
+#: src/killall.c:1057
 #, fuzzy, c-format
 msgid "killall: %s lacks process entries (not mounted ?)\n"
 msgstr "%s は空ディレクトリ (マウントされていない?)\n"
@@ -407,7 +397,7 @@ msgstr "pstree (PSmisc) %s\n"
 #: src/prtstat.c:66
 #, fuzzy, c-format
 msgid ""
-"Copyright (C) 2009-2017 Craig Small\n"
+"Copyright (C) 2009-2022 Craig Small\n"
 "\n"
 msgstr ""
 "Copyright (C) 1993-2005 Werner Almesberger and Craig Small\n"
@@ -531,12 +521,12 @@ msgstr ""
 msgid "/proc is not mounted, cannot stat /proc/self/stat.\n"
 msgstr ""
 
-#: src/pstree.c:1138
+#: src/pstree.c:1184
 #, c-format
 msgid "%s is empty (not mounted ?)\n"
 msgstr "%s は空ディレクトリ (マウントされていない?)\n"
 
-#: src/pstree.c:1172
+#: src/pstree.c:1217
 #, c-format
 msgid ""
 "Usage: pstree [-acglpsStTuZ] [ -h | -H PID ] [ -n | -N type ]\n"
@@ -544,15 +534,7 @@ msgid ""
 "   or: pstree -V\n"
 msgstr ""
 
-#: src/pstree.c:1177
-#, c-format
-msgid ""
-"Usage: pstree [-acglpsStTu] [ -h | -H PID ] [ -n | -N type ]\n"
-"              [ -A | -G | -U ] [ PID | USER ]\n"
-"   or: pstree -V\n"
-msgstr ""
-
-#: src/pstree.c:1182
+#: src/pstree.c:1221
 #, c-format
 msgid ""
 "\n"
@@ -560,7 +542,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/pstree.c:1185
+#: src/pstree.c:1224
 #, c-format
 msgid ""
 "  -a, --arguments     show command line arguments\n"
@@ -568,21 +550,21 @@ msgid ""
 "  -c, --compact-not   don't compact identical subtrees\n"
 msgstr ""
 
-#: src/pstree.c:1189
+#: src/pstree.c:1228
 #, c-format
 msgid ""
 "  -C, --color=TYPE    color process by attribute\n"
 "                      (age)\n"
 msgstr ""
 
-#: src/pstree.c:1192
+#: src/pstree.c:1231
 #, c-format
 msgid ""
 "  -g, --show-pgids    show process group ids; implies -c\n"
 "  -G, --vt100         use VT100 line drawing characters\n"
 msgstr ""
 
-#: src/pstree.c:1195
+#: src/pstree.c:1234
 #, c-format
 msgid ""
 "  -h, --highlight-all highlight current process and its ancestors\n"
@@ -591,17 +573,17 @@ msgid ""
 "  -l, --long          don't truncate long lines\n"
 msgstr ""
 
-#: src/pstree.c:1200
+#: src/pstree.c:1239
 #, c-format
 msgid ""
 "  -n, --numeric-sort  sort output by PID\n"
 "  -N TYPE, --ns-sort=TYPE\n"
 "                      sort output by this namespace type\n"
-"                              (cgroup, ipc, mnt, net, pid, user, uts)\n"
+"                              (cgroup, ipc, mnt, net, pid, time, user, uts)\n"
 "  -p, --show-pids     show PIDs; implies -c\n"
 msgstr ""
 
-#: src/pstree.c:1206
+#: src/pstree.c:1245
 #, c-format
 msgid ""
 "  -s, --show-parents  show parents of the selected process\n"
@@ -610,7 +592,7 @@ msgid ""
 "  -T, --hide-threads  hide threads, show only processes\n"
 msgstr ""
 
-#: src/pstree.c:1211
+#: src/pstree.c:1250
 #, c-format
 msgid ""
 "  -u, --uid-changes   show uid transitions\n"
@@ -618,14 +600,14 @@ msgid ""
 "  -V, --version       display version information\n"
 msgstr ""
 
-#: src/pstree.c:1216
-#, fuzzy, c-format
+#: src/pstree.c:1254
+#, c-format
 msgid ""
 "  -Z, --security-context\n"
-"                      show SELinux security contexts\n"
-msgstr "    -Z     SELinuxセキュリティコンテキストを表示する\n"
+"                      show security attributes\n"
+msgstr ""
 
-#: src/pstree.c:1219
+#: src/pstree.c:1256
 #, fuzzy, c-format
 msgid ""
 "\n"
@@ -637,46 +619,51 @@ msgstr ""
 "    ユーザ名 指定したユーザとして動作するプロセスから派生するツリーのみ表示\n"
 "\n"
 
-#: src/pstree.c:1227
+#: src/pstree.c:1264
 #, c-format
 msgid "pstree (PSmisc) %s\n"
 msgstr "pstree (PSmisc) %s\n"
 
-#: src/pstree.c:1230
+#: src/pstree.c:1267
 #, fuzzy, c-format
 msgid ""
-"Copyright (C) 1993-2019 Werner Almesberger and Craig Small\n"
+"Copyright (C) 1993-2021 Werner Almesberger and Craig Small\n"
 "\n"
 msgstr ""
 "Copyright (C) 1993-2005 Werner Almesberger and Craig Small\n"
 "\n"
 
-#: src/pstree.c:1354
+#: src/pstree.c:1384
 #, c-format
 msgid "TERM is not set\n"
 msgstr "TERMが設定されていません\n"
 
-#: src/pstree.c:1358
+#: src/pstree.c:1388
 #, c-format
 msgid "Can't get terminal capabilities\n"
 msgstr "端末の機能を取得できませんでした\n"
 
-#: src/pstree.c:1376
+#: src/pstree.c:1406
 #, c-format
 msgid "procfs file for %s namespace not available\n"
 msgstr ""
 
-#: src/pstree.c:1429
+#: src/pstree.c:1452
 #, c-format
 msgid "No such user name: %s\n"
 msgstr "指定ユーザ名は存在しません: %s\n"
 
-#: src/pstree.c:1455
+#: src/pstree.c:1468
+#, fuzzy, c-format
+msgid "Process %d not found.\n"
+msgstr "プロセスは見つかりませんでした\n"
+
+#: src/pstree.c:1484
 #, c-format
 msgid "No processes found.\n"
 msgstr "プロセスは見つかりませんでした\n"
 
-#: src/pstree.c:1463
+#: src/pstree.c:1492
 #, c-format
 msgid "Press return to close\n"
 msgstr "リターンキーを押すと閉じます\n"
@@ -686,6 +673,7 @@ msgstr "リターンキーを押すと閉じます\n"
 msgid "%s: unknown signal; %s -l lists signals.\n"
 msgstr "%s: 未知のシグナル; %s -l によってシグナルを一覧表示します\n"
 
+#, c-format
 #~ msgid ""
 #~ "Usage: pidof [ -eg ] NAME...\n"
 #~ "       pidof -V\n"
@@ -706,18 +694,29 @@ msgstr "%s: 未知のシグナル; %s -l によってシグナルを一覧表示します\n"
 #~ "    -V      バージョン情報を表示する\n"
 #~ "\n"
 
+#, c-format
+#~ msgid ""
+#~ "Usage: killall [-Z CONTEXT] [-u USER] [ -eIgiqrvw ] [ -SIGNAL ] NAME...\n"
+#~ msgstr ""
+#~ "使用法: killall [-Z CONTEXT] [-u ユーザー] [ -eIgiqrvw ] [ -シグナル ] 名"
+#~ "前...\n"
+
+#, c-format
 #~ msgid "Cannot stat mount point %s: %s\n"
 #~ msgstr "マウントポイント %s をstatできません: %s\n"
 
 #~ msgid "You cannot use the mounted and mountpoint flags together"
 #~ msgstr "-mオプションと-cオプションは同時には使えません"
 
+#, c-format
 #~ msgid "Cannot open /etc/mtab: %s\n"
 #~ msgstr "/etc/mtab が開けません: %s\n"
 
+#, c-format
 #~ msgid "Internal error: MAX_DEPTH not big enough.\n"
 #~ msgstr "内部エラー: MAX_DEPTH が十分大きくありません.\n"
 
+#, c-format
 #~ msgid ""
 #~ "Usage: pstree [ -a ] [ -c ] [ -h | -H PID ] [ -l ] [ -n ] [ -p ] [ -u ]\n"
 #~ "              [ -A | -G | -U ] [ PID | USER ]\n"
@@ -754,6 +753,10 @@ msgstr "%s: 未知のシグナル; %s -l によってシグナルを一覧表示します\n"
 #~ "    -u     UIDの遷移状況を表示する\n"
 #~ "    -U     UTF-8 (Unicode) 文字を罫線表示に使用\n"
 #~ "    -V     バージョン情報を表示\n"
+
+#, c-format
+#~ msgid "    -Z     show SELinux security contexts\n"
+#~ msgstr "    -Z     SELinuxセキュリティコンテキストを表示する\n"
 
 #~ msgid "Cannot open protocol file \"%s\": %s"
 #~ msgstr "プロトコルファイル \"%s\" が開けません: %s"

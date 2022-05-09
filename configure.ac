@@ -1,11 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ([2.69])
+AC_PREREQ([2.71])
 AC_CONFIG_MACRO_DIR([m4])
-AC_INIT([psmisc],
-	m4_esyscmd([misc/git-version-gen .tarball-version]),
-	,,,[https://www.gitlab.com/psmisc/psmisc])
-AM_INIT_AUTOMAKE([foreign 1.11 dejagnu subdir-objects -Wall -Wno-portability tar-pax no-dist-gzip dist-xz])
-AM_SILENT_RULES([no])
+AC_INIT([psmisc],[m4_esyscmd(misc/git-version-gen .tarball-version)],[],[],[],[https://www.gitlab.com/psmisc/psmisc])
+AM_INIT_AUTOMAKE([foreign 1.11 subdir-objects -Wall -Wno-portability tar-pax no-dist-gzip dist-xz])
+AM_SILENT_RULES([yes])
 AC_CONFIG_SRCDIR([src/comm.h])
 AC_CONFIG_HEADERS([config.h])
 
@@ -14,10 +12,22 @@ AC_USE_SYSTEM_EXTENSIONS(_GNU_SOURCE)
 AC_PROG_CXX
 AC_PROG_LN_S
 AC_PROG_CC
-AC_PROG_CC_STDC
+
+AC_DEFUN([PSMISC_PROG_PO4A], [
+  AC_REQUIRE([AM_NLS])
+  AC_CHECK_PROGS([PO4A], [po4a])
+  AS_IF([test "$USE_NLS" = "yes" && test -n "$PO4A"], [
+    USE_PO4A=yes
+  ], [
+    USE_PO4A=no
+  ])
+  AC_SUBST([USE_PO4A])
+])
+PSMISC_PROG_PO4A
 
 dnl checks for options
 # SELinux support - off by default
+DL_LIB=
 AC_SUBST([WITH_SELINUX])
 AC_ARG_ENABLE([selinux],
   [AS_HELP_STRING([--enable-selinux], [Enable Security-Enhanced Linux features])],
@@ -25,10 +35,13 @@ AC_ARG_ENABLE([selinux],
   [enable_selinux="no"])
 if test "$enable_selinux" = "yes"; then
   AC_DEFINE([WITH_SELINUX], [1], [Use Security-Enhanced Linux features])
-  AC_CHECK_LIB([selinux], [getfilecon], [SELINUX_LIB=-lselinux], [
-     AC_MSG_ERROR([Cannot find selinux static library]) ])
+  AC_SEARCH_LIBS([dlopen], [dl], [],
+		 [AC_MSG_ERROR([dynamic linking unavailable, circumvent with --disable-selinux])])
+  if test "x$ac_cv_search_dlopen" != "xnone required"; then
+      DL_LIB="$ac_cv_search_dlopen"
+  fi
 fi
-AC_SUBST([SELINUX_LIB])
+AC_SUBST([DL_LIB])
 
 # Call fork before all stat calls to stop hanging on NFS mounts
 AC_SUBST([WITH_TIMEOUT_STAT])
@@ -83,7 +96,7 @@ AC_SUBST([TERMCAP_LIB])
 
 dnl Checks for header files.
 AC_HEADER_DIRENT
-AC_HEADER_STDC
+
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h langinfo.h libintl.h limits.h locale.h mntent.h netdb.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/socket.h termios.h unistd.h])
 
@@ -199,5 +212,6 @@ AC_CONFIG_FILES([Makefile
 		 doc/Makefile
 		 icons/Makefile
 		 po/Makefile.in
+		 man-po/Makefile
 		 testsuite/Makefile])
 AC_OUTPUT

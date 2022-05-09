@@ -2,7 +2,7 @@
  * killall.c - kill processes by name or list PIDs
  *
  * Copyright (C) 1993-2002 Werner Almesberger
- * Copyright (C) 2002-2018 Craig Small <csmall@dropbear.xyz>
+ * Copyright (C) 2002-2022 Craig Small <csmall@dropbear.xyz>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,8 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
+#include <fcntl.h>
 #include <getopt.h>
 #include <pwd.h>
 #include <regex.h>
@@ -45,6 +47,7 @@
 #include <assert.h>
 
 #ifdef WITH_SELINUX
+#include <dlfcn.h>
 #include <selinux/selinux.h>
 #endif /*WITH_SELINUX*/
 
@@ -229,16 +232,21 @@ static int get_ns(pid_t pid, int id) {
 }
 
 static int
-match_process_uid(pid_t pid, uid_t uid)
+match_process_uid(const int pidfd, uid_t uid)
 {
     char buf[128];
     uid_t puid;
     FILE *f;
+    int fd;
     int re = -1;
 
-    snprintf (buf, sizeof buf, PROC_BASE "/%d/status", pid);
-    if (!(f = fopen (buf, "r")))
+    if ( (fd = openat(pidfd, "status", O_RDONLY, 0)) < 0)
         return 0;
+    if (!(f = fdopen (fd, "r")))
+    {
+        close(fd);
+        return 0;
+    }
 
     while (fgets(buf, sizeof buf, f))
     {
@@ -248,13 +256,79 @@ match_process_uid(pid_t pid, uid_t uid)
             break;
         }
     }
-    fclose(f);
+    close(fd);
     if (re==-1)
     {
         fprintf(stderr, _("killall: Cannot get UID from process status\n"));
         exit(1);
     }
     return re;
+}
+
+/* Match on the given scontext to the process context
+ * Return 0 on a match
+ */
+static int
+match_process_context(const pid_t pid, const regex_t *scontext)
+{
+    static void (*my_freecon)(char*) = NULL;
+    static int (*my_getpidcon)(pid_t pid, char **context) = NULL;
+    static int selinux_enabled = 0;
+    char *lcontext;
+    int retval = 1;
+
+#ifdef WITH_SELINUX
+    static int tried_load = 0;
+    static int (*my_is_selinux_enabled)(void) = NULL;
+
+    if(!my_getpidcon && !tried_load){
+        void *handle = dlopen("libselinux.so.1", RTLD_NOW);
+        if(handle) {
+            my_freecon = dlsym(handle, "freecon");
+        if(dlerror())
+            my_freecon = NULL;
+        my_getpidcon = dlsym(handle, "getpidcon");
+        if(dlerror())
+            my_getpidcon = NULL;
+        my_is_selinux_enabled = dlsym(handle, "is_selinux_enabled");
+        if(dlerror())
+            my_is_selinux_enabled = 0;
+        else
+            selinux_enabled = my_is_selinux_enabled();
+        }
+    tried_load++;
+    }
+#endif /* WITH_SELINUX */
+
+    if (my_getpidcon && selinux_enabled && !my_getpidcon(pid, &lcontext)) {
+        retval = (regexec(scontext, lcontext, 0, NULL, 0) ==0);
+	my_freecon(lcontext);
+    } else {
+        FILE *file;
+        char path[50];
+        char readbuf[BUFSIZ+1];
+        snprintf(path, sizeof path, "/proc/%d/attr/current", pid);
+        if ( (file = fopen(path, "r")) != NULL) {
+            if (fgets(readbuf, BUFSIZ, file) != NULL) {
+                retval = (regexec(scontext, readbuf, 0, NULL, 0)==0);
+             }
+	    fclose(file);
+        }
+    }
+    return retval;
+}
+
+static int
+my_send_signal(
+    const int pidfd,
+    const pid_t pid,
+    const int sig)
+{
+#ifdef __NR_pidfd_send_signal
+    if (pid > 0) /* Not PGID */
+        return syscall(__NR_pidfd_send_signal, pidfd, sig, NULL, 0);
+#endif
+    return kill(pid, sig);
 }
 
 static void
@@ -322,34 +396,34 @@ build_nameinfo(const int names, char **namelist)
 
 static int
 load_process_name_and_age(char *comm, double *process_age_sec,
-                          const pid_t pid, int load_age)
+                          const int pidfd, int load_age)
 {
+    int fd;
     FILE *file;
-    char *path;
     char buf[1024];
     char *startcomm, *endcomm;
     unsigned lencomm;
     *process_age_sec = 0;
 
-    if (asprintf (&path, PROC_BASE "/%d/stat", pid) < 0)
+    if ( (fd = openat(pidfd, "stat", O_RDONLY, 0)) < 0)
         return -1;
-    if (!(file = fopen (path, "r")))
+    if (!(file = fdopen (fd, "r")))
     {
-        free(path);
+        close(fd);
         return -1;
     }
-    free (path);
     if (fgets(buf, 1024, file) == NULL)
     {
-        fclose(file);
+        close(fd);
         return -1;
     }
-    fclose(file);
-    startcomm = strchr(buf, '(') + 1;
-    endcomm = strrchr(startcomm, ')');
+    close(fd);
+    if ( NULL == ( startcomm = strchr(buf, '(')))
+       return -1;
+    startcomm++;
+    if ( NULL == ( endcomm = strrchr(startcomm, ')')))
+	return -1;
     lencomm = endcomm - startcomm;
-    if (lencomm < 0)
-        lencomm = 0;
     if (lencomm > COMM_LEN -1)
         lencomm = COMM_LEN -1;
     strncpy(comm, startcomm, lencomm);
@@ -370,21 +444,22 @@ load_process_name_and_age(char *comm, double *process_age_sec,
 }
 
 static int
-load_proc_cmdline(const pid_t pid, const char *comm, char **command, int *got_long)
+load_proc_cmdline(const int pidfd, const pid_t pid, const char *comm, const int check_comm_length, char **command, int *got_long)
 {
     FILE *file;
-    char *path, *p, *command_buf;
+    int fp;
+    char *p, *command_buf;
     int cmd_size = 128;
     int okay;
 
-    if (asprintf (&path, PROC_BASE "/%d/cmdline", pid) < 0)
+    if ( (fp = openat(pidfd, "cmdline", O_RDONLY, 0)) < 0)
         return -1;
-    if (!(file = fopen (path, "r")))
+
+    if (!(file = fdopen (fp, "r")))
     {
-        free (path);
+        close(fp);
         return -1;
     }
-    free(path);
 
     if ( (command_buf = (char *)malloc (cmd_size)) == NULL)
         exit(1);
@@ -426,7 +501,7 @@ load_proc_cmdline(const pid_t pid, const char *comm, char **command, int *got_lo
         }
         p = strrchr(command_buf,'/');
         p = p ? p+1 : command_buf;
-        if (strncmp(p, comm, COMM_LEN-1) == 0) {
+        if (strncmp(p, comm, check_comm_length) == 0) {
             okay = 1;
             if (!(*command = strdup(p))) {
                 free(command_buf);
@@ -435,7 +510,7 @@ load_proc_cmdline(const pid_t pid, const char *comm, char **command, int *got_lo
             break;
         }
     }
-    (void) fclose(file);
+    (void) close(fp);
     free(command_buf);
     command_buf = NULL;
 
@@ -454,7 +529,7 @@ load_proc_cmdline(const pid_t pid, const char *comm, char **command, int *got_lo
 static pid_t *
 create_pid_table(int *max_pids, int *pids)
 {
-    pid_t self, *pid_table;
+    pid_t self, *pid_table, *realloc_pid_table;
     int pid;
     DIR *dir;
     struct dirent *de;
@@ -479,11 +554,13 @@ create_pid_table(int *max_pids, int *pids)
             continue;
         if (*pids == *max_pids)
         {
-            if (!(pid_table = realloc (pid_table, 2 * *pids * sizeof (pid_t))))
+            if (!(realloc_pid_table = realloc (pid_table, 2 * *pids * sizeof (pid_t))))
             {
                 perror ("realloc");
+                free(pid_table);
                 exit (1);
             }
+            pid_table = realloc_pid_table;
             *max_pids *= 2;
         }
         pid_table[(*pids)++] = pid;
@@ -508,8 +585,7 @@ static int match_process_name(
     {
         if (got_long)
         {
-            return (0 == strncmp2 (match_name, proc_cmdline, OLD_COMM_LEN - 1,
-                                   ignore_case));
+            return (0 == strcmp2 (match_name, proc_cmdline, ignore_case));
         } else {
             return (0 == strncmp2 (match_name, proc_comm, OLD_COMM_LEN - 1,
                                    ignore_case));
@@ -520,8 +596,7 @@ static int match_process_name(
     {
         if (got_long)
         {
-            return (0 == strncmp2 (match_name, proc_cmdline, COMM_LEN - 1,
-                                   ignore_case));
+            return (0 == strcmp2 (match_name, proc_cmdline, ignore_case));
         } else {
             return (0 == strncmp2 (match_name, proc_comm, COMM_LEN - 1,
                                    ignore_case));
@@ -535,29 +610,22 @@ static int match_process_name(
     return (0 == strcmp2 (match_name, proc_comm, ignore_case));
 }
 
-#ifdef WITH_SELINUX
 static int
 kill_all(int signal, int name_count, char **namelist, struct passwd *pwent, 
          regex_t *scontext )
-#else  /*WITH_SELINUX*/
-static int
-kill_all (int signal, int name_count, char **namelist, struct passwd *pwent)
-#endif /*WITH_SELINUX*/
 {
     struct stat st;
     NAMEINFO *name_info = NULL;
-    char *path, comm[COMM_LEN];
+    char comm[COMM_LEN];
     char *command = NULL;
     pid_t *pid_table, *pid_killed;
     pid_t *pgids = NULL;
     int i, j, length, got_long, error;
     int pids, max_pids, pids_killed;
+    int pidfd = 0;
     unsigned long found;
     regex_t *reglist = NULL;
     long ns_ino = 0;
-#ifdef WITH_SELINUX
-    security_context_t lcontext=NULL;
-#endif /*WITH_SELINUX*/
 
     if (opt_ns_pid)
         ns_ino = get_ns(opt_ns_pid, PIDNS);
@@ -592,26 +660,24 @@ kill_all (int signal, int name_count, char **namelist, struct passwd *pwent)
         pid_t id;
         int found_name = -1;
         double process_age_sec = 0;
+        char pidpath[256];
+
+        /* Open PID directory */
+        if (pidfd > 0)
+            close(pidfd);
+        snprintf (pidpath, sizeof pidpath, PROC_BASE "/%d", pid_table[i]);
+        if ( (pidfd = open(pidpath, O_RDONLY|O_DIRECTORY)) < 0)
+            continue;
         /* match by UID */
-        if (pwent && match_process_uid(pid_table[i], pwent->pw_uid)==0)
+        if (pwent && match_process_uid(pidfd, pwent->pw_uid)==0)
             continue;
         if (opt_ns_pid && ns_ino && ns_ino != get_ns(pid_table[i], PIDNS))
             continue;
 
-#ifdef WITH_SELINUX
-        /* match by SELinux context */
-        if (scontext) 
-        {
-            if (getpidcon(pid_table[i], &lcontext) < 0)
-                continue;
-            if (regexec(scontext, lcontext, 0, NULL, 0) != 0) {
-                freecon(lcontext);
-                continue;
-            }
-            freecon(lcontext);
-        }
-#endif /*WITH_SELINUX*/
-        length = load_process_name_and_age(comm, &process_age_sec, pid_table[i], (younger_than||older_than));
+	if (scontext && match_process_context(pid_table[i], scontext) == 0)
+	    continue;
+
+        length = load_process_name_and_age(comm, &process_age_sec, pidfd, (younger_than||older_than));
         if (length < 0)
             continue;
 
@@ -626,8 +692,9 @@ kill_all (int signal, int name_count, char **namelist, struct passwd *pwent)
             free(command);
             command = NULL;
         }
-        if (length == COMM_LEN - 1)
-            if (load_proc_cmdline(pid_table[i], comm, &command, &got_long) < 0)
+
+        if (length == COMM_LEN - 1 || length == OLD_COMM_LEN - 1)
+            if (load_proc_cmdline(pidfd, pid_table[i], comm, length, &command, &got_long) < 0)
                 continue;
 
         /* match by process name */
@@ -648,9 +715,7 @@ kill_all (int signal, int name_count, char **namelist, struct passwd *pwent)
 
                 } else {
                     int ok = 1; 
-                    if (asprintf (&path, PROC_BASE "/%d/exe", pid_table[i]) < 0)
-                        continue;
-                    if (stat (path, &st) < 0) 
+                    if (fstatat(pidfd, "exe", &st, 0) < 0)
                         ok = 0;
                     else if (name_info[j].st.st_dev != st.st_dev ||
                              name_info[j].st.st_ino != st.st_ino)
@@ -662,12 +727,11 @@ kill_all (int signal, int name_count, char **namelist, struct passwd *pwent)
                         char *linkbuf = malloc(len + 1);
 
                         if (!linkbuf ||
-                            readlink(path, linkbuf, len + 1) != (ssize_t)len ||
+                            readlinkat(pidfd, "exe", linkbuf, len + 1) != (ssize_t)len ||
                             memcmp(namelist[j], linkbuf, len))
                             ok = 0;
                         free(linkbuf);
                     }
-                    free(path);
                     if (!ok)
                         continue;
                 }
@@ -700,7 +764,7 @@ kill_all (int signal, int name_count, char **namelist, struct passwd *pwent)
         }    
         if (interactive && !ask (comm, id, signal))
             continue;
-        if (kill (process_group ? -id : id, signal) >= 0)
+        if (my_send_signal (pidfd, process_group ? -id : id, signal) >= 0)
         {
             if (verbose)
                 fprintf (stderr, _("Killed %s(%s%d) with signal %d\n"), got_long ? command :
@@ -719,6 +783,8 @@ kill_all (int signal, int name_count, char **namelist, struct passwd *pwent)
     if (reglist)
         free_regexp_list(reglist, name_count);
     free(pgids);
+    if (pidfd > 0)
+        close(pidfd);
     if (!quiet)
         for (i = 0; i < name_count; i++)
             if (!(found & (1UL << i)))
@@ -762,14 +828,8 @@ usage (const char *msg)
 {
     if (msg != NULL)
         fprintf(stderr, "%s\n", msg);
-#ifdef WITH_SELINUX
-    fprintf(stderr, _(
-                      "Usage: killall [ -Z CONTEXT ] [ -u USER ] [ -y TIME ] [ -o TIME ] [ -eIgiqrvw ]\n"
-                      "               [ -s SIGNAL | -SIGNAL ] NAME...\n"));
-#else  /*WITH_SELINUX*/
     fprintf(stderr, _(
                       "Usage: killall [OPTION]... [--] NAME...\n"));
-#endif /*WITH_SELINUX*/
     fprintf(stderr, _(
                       "       killall -l, --list\n"
                       "       killall -V, --version\n\n"
@@ -790,11 +850,9 @@ usage (const char *msg)
                       "  -n,--ns PID         match processes that belong to the same namespaces\n"
                       "                      as PID\n"));
 
-#ifdef WITH_SELINUX
     fprintf(stderr, _(
                       "  -Z,--context REGEXP kill only process(es) having context\n"
                       "                      (must precede other arguments)\n"));
-#endif /*WITH_SELINUX*/
     fputc('\n', stderr);
     exit(1);
 }
@@ -804,7 +862,7 @@ void print_version()
 {
     fprintf(stderr, "killall (PSmisc) %s\n", VERSION);
     fprintf(stderr, _(
-                      "Copyright (C) 1993-2017 Werner Almesberger and Craig Small\n\n"));
+                      "Copyright (C) 1993-2022 Werner Almesberger and Craig Small\n\n"));
     fprintf(stderr, _(
                       "PSmisc comes with ABSOLUTELY NO WARRANTY.\n"
                       "This is free software, and you are welcome to redistribute it under\n"
@@ -852,9 +910,7 @@ main (int argc, char **argv)
         {"verbose", 0, NULL, 'v'},
         {"wait", 0, NULL, 'w'},
         {"ns", 1, NULL, 'n' },
-#ifdef WITH_SELINUX
         {"context", 1, NULL, 'Z'},
-#endif /*WITH_SELINUX*/
         {"version", 0, NULL, 'V'},
         {0,0,0,0 }};
 
@@ -865,12 +921,10 @@ main (int argc, char **argv)
     bindtextdomain(PACKAGE, LOCALEDIR);
     textdomain(PACKAGE);
 #endif
-#ifdef WITH_SELINUX
-    security_context_t scontext = NULL;
+    char *scontext = NULL;
     regex_t scontext_reg;
 
     if ( argc < 2 ) usage(NULL); /* do the obvious thing... */
-#endif /*WITH_SELINUX*/
 
     name = strrchr (*argv, '/');
     if (name)
@@ -881,11 +935,7 @@ main (int argc, char **argv)
 
 
     opterr = 0;
-#ifdef WITH_SELINUX
     while ( (optc = getopt_long_only(argc,argv,"egy:o:ilqrs:u:vwZ:VIn:",options,NULL)) != -1) {
-#else
-        while ( (optc = getopt_long_only(argc,argv,"egy:o:ilqrs:u:vwVIn:",options,NULL)) != -1) {
-#endif
             switch (optc) {
             case 'e':
                 exact = 1;
@@ -962,18 +1012,13 @@ main (int argc, char **argv)
                 opt_ns_pid = (pid_t) num;
             }
                 break;
-#ifdef WITH_SELINUX
             case 'Z': 
-                if (is_selinux_enabled()>0) {
-                    scontext=optarg;
-                    if (regcomp(&scontext_reg, scontext, REG_EXTENDED|REG_NOSUB) != 0) {
-                        fprintf(stderr, _("Bad regular expression: %s\n"), scontext);
-                        exit (1);
-                    }
-                } else 
-                    fprintf(stderr, "Warning: -Z (--context) ignored. Requires an SELinux enabled kernel\n");
+                scontext=optarg;
+                if (regcomp(&scontext_reg, scontext, REG_EXTENDED|REG_NOSUB) != 0) {
+                    fprintf(stderr, _("Bad regular expression: %s\n"), scontext);
+                    exit (1);
+                }
                 break;
-#endif /*WITH_SELINUX*/
             case '?':
                 if (skip_error == optind)
                     break;
@@ -1000,11 +1045,7 @@ main (int argc, char **argv)
             }
         }
         myoptind = optind;
-#ifdef WITH_SELINUX
         if ((argc - myoptind < 1) && pwent==NULL && scontext==NULL) 
-#else
-            if ((argc - myoptind < 1) && pwent==NULL)      
-#endif
                 usage(NULL);
 
         if (argc - myoptind > MAX_NAMES) {
@@ -1018,10 +1059,6 @@ main (int argc, char **argv)
             exit (1);
         }
         argv = argv + myoptind;
-#ifdef WITH_SELINUX
         return kill_all(sig_num,argc - myoptind, argv, pwent, 
                         scontext ? &scontext_reg : NULL);
-#else  /*WITH_SELINUX*/
-        return kill_all(sig_num,argc - myoptind, argv, pwent);
-#endif /*WITH_SELINUX*/
     }
