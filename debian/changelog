@@ -1,4 +1,4 @@
-psmisc (23.5-1) UNRELEASED; urgency=medium
+psmisc (23.5-1) unstable; urgency=medium
 
   [ Debian Janitor ]
   * Trim trailing whitespace.
@@ -11,7 +11,7 @@ psmisc (23.5-1) UNRELEASED; urgency=medium
   [ Craig Small ]
   * New upstream release
 
- -- Craig Small <csmall@debian.org>  Mon, 09 May 2022 20:50:42 +1000
+ -- Craig Small <csmall@debian.org>  Mon, 09 May 2022 21:09:28 +1000
 
 psmisc (23.4-2) unstable; urgency=medium
 
