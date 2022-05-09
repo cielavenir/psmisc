@@ -88,7 +88,7 @@ CLEANFILES = src/signames.h .version
 
 src/signames.h: src/signames.c Makefile src/$(am__dirstamp)
 		export LC_ALL=C ; \
-		@CPP@ -dM $< |\
+		@CPP@ @CPPFLAGS@ -dM $< |\
 		tr -s '\t ' ' ' | sort -n -k 3 | sed \
 	's:#define SIG\([A-Z][A-Z]*[0-9]*\) \([0-9][0-9]*\).*$\:{\ \2,"\1" },:p;d' | \
 		  grep -v '[0-9][0-9][0-9]' >$@ || \
@@ -110,3 +110,11 @@ dist-hook:
 get-trans:
 	rsync -Lrtvz  translationproject.org::tp/latest/psmisc/  po
 	rsync -Lrtvz  translationproject.org::tp/latest/psmisc-man/  man-po
+
+# Programs required for testing only
+check_PROGRAMS = \
+	src/socket_test
+
+src_socket_test_SOURCES = src/socket_test.c
+
+check: $(check_PROGRAMS) $(PROGRAMS)
