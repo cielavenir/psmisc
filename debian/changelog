@@ -1,3 +1,14 @@
+psmisc (23.4-3) UNRELEASED; urgency=medium
+
+  * Trim trailing whitespace.
+  * Strip unusual field spacing from debian/control.
+  * Set Homepage field in Source rather than Binary package.
+  * Set upstream metadata fields: Bug-Database, Bug-Submit, Repository,
+    Repository-Browse.
+  * Update standards version to 4.6.0, no changes needed.
+
+ -- Debian Janitor <janitor@jelmer.uk>  Wed, 13 Oct 2021 00:46:43 -0000
+
 psmisc (23.4-2) unstable; urgency=medium
 
   * replace/conflict with manpages-de Closes: #982059
@@ -518,4 +529,3 @@ psmisc (16-1) unstable; urgency=low
   * procps upstream source split this off at version 1.2
 
  -- Craig Small <csmall@debian.org>  Fri,  2 Jan 1998 11:12:00 +1100
-
